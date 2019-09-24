@@ -112,10 +112,52 @@ export default {
     methods: {
         // 获取 easy-mock 的模拟数据
         getData() {
-            fetchData(this.query).then(res => {
-                this.tableData = res.list;
-                this.pageTotal = res.pageTotal || 50;
-            });
+            // fetchData(this.query).then(res => {
+            //     this.tableData = res.list;
+            //     this.pageTotal = res.pageTotal || 50;
+            // });
+            this.tableData = [
+                {
+                    id: 1,
+                    sub: 'zhao',
+                    res: '111111表',
+                    act: 'Write',
+                    permit: '允许',
+                    date: '2018-01-22',
+                },
+                {
+                    id: 2,
+                    sub: 'kong',
+                    res: '222222表',
+                    act: 'Write',
+                    permit: '允许',
+                    date: '2018-01-22',
+                },
+                {
+                    id: 3,
+                    sub: 'yang',
+                    res: '333333表',
+                    act: 'Read',
+                    permit: '允许',
+                    date: '2018-01-22',
+                },
+                {
+                    id: 4,
+                    sub: 'zhao',
+                    res: '111111工具',
+                    act: 'Write',
+                    permit: '拒绝',
+                    date: '2018-01-22',
+                },
+                {
+                    id: 5,
+                    sub: 'zhao',
+                    res: '111111表',
+                    act: 'Write',
+                    permit: '允许',
+                    date: '2018-01-22',
+                },
+            ]
         },
         // 触发搜索按钮
         handleSearch() {

@@ -120,10 +120,57 @@ export default {
     methods: {
         // 获取 easy-mock 的模拟数据
         getData() {
-            fetchData(this.query).then(res => {
-                this.tableData = res.list;
-                this.pageTotal = res.pageTotal || 50;
-            });
+            // fetchData(this.query).then(res => {
+            //     this.tableData = res.list;
+            //     this.pageTotal = res.pageTotal || 50;
+            // });
+            this.tableData = [
+                {
+                    id: 1,
+                    name: 'zhao',
+                    identity: '管理员',
+                    department: '部门1',
+                    connection: '1231231231',
+                    address: '333333',
+                    date: '2018-01-22',
+                },
+                {
+                    id: 2,
+                    name: 'zhao',
+                    identity: '管理员',
+                    department: '部门1',
+                    connection: '1231231231',
+                    address: '333333',
+                    date: '2018-01-22',
+                },
+                {
+                    id: 3,
+                    name: 'kong',
+                    identity: '管理员',
+                    department: '部门1',
+                    connection: '1231231231',
+                    address: '333333',
+                    date: '2018-01-22',
+                },
+                {
+                    id: 4,
+                    name: 'yang',
+                    identity: '经理',
+                    department: '部门2',
+                    connection: '123123232321',
+                    address: '3344433',
+                    date: '2018-01-22',
+                },
+                {
+                    id: 5,
+                    name: 'zhao',
+                    identity: '管理员',
+                    department: '部门1',
+                    connection: '1231231231',
+                    address: '333333',
+                    date: '2018-01-22',
+                },
+            ]
         },
         // 触发搜索按钮
         handleSearch() {
