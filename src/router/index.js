@@ -30,6 +30,21 @@ export default new Router({
                     meta: { title: '基础表格' }
                 },
                 {
+                    path: '/usertable',
+                    component: () => import(/* webpackChunkName: "table" */ '../components/page/User/UserTable.vue'),
+                    meta: { title: '身份管理' }
+                },
+                {
+                    path: '/resourcetable',
+                    component: () => import(/* webpackChunkName: "table" */ '../components/page/Resource/ResourceTable.vue'),
+                    meta: { title: '资源管理' }
+                },
+                {
+                    path: '/permissiontable',
+                    component: () => import(/* webpackChunkName: "table" */ '../components/page/Policy/PermissionTable.vue'),
+                    meta: { title: '权限管理' }
+                },
+                {
                     path: '/tabs',
                     component: () => import(/* webpackChunkName: "tabs" */ '../components/page/Tabs.vue'),
                     meta: { title: 'tab选项卡' }
