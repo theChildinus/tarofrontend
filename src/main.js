@@ -4,6 +4,7 @@ import router from './router';
 import ElementUI from 'element-ui';
 import VueI18n from 'vue-i18n';
 import { messages } from './components/common/i18n';
+import axios from 'axios';
 import 'element-ui/lib/theme-chalk/index.css'; // 默认主题
 // import './assets/css/theme-green/index.css'; // 浅绿色主题
 import './assets/css/icon.css';
@@ -41,6 +42,7 @@ router.beforeEach((to, from, next) => {
     }
 });
 
+Vue.prototype.$axios = axios;
 new Vue({
     router,
     i18n,

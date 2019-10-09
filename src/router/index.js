@@ -40,8 +40,18 @@ export default new Router({
                     meta: { title: '资源管理' }
                 },
                 {
+                    path: '/addresource',
+                    component: () => import(/* webpackChunkName: "table" */ '../components/page/Resource/AddResource.vue'),
+                    meta: { title: '资源管理' }
+                },
+                {
                     path: '/permissiontable',
                     component: () => import(/* webpackChunkName: "table" */ '../components/page/Policy/PermissionTable.vue'),
+                    meta: { title: '权限管理' }
+                },
+                {
+                    path: '/addpermission',
+                    component: () => import(/* webpackChunkName: "table" */ '../components/page/Policy/AddPermission.vue'),
                     meta: { title: '权限管理' }
                 },
                 {
