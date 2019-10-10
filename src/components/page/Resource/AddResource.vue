@@ -57,10 +57,8 @@ export default {
                 resource_type: type
             })
             .then( (res) => {
-                console.log(res.data)
-                
+                this.$message.success('提交成功！');    
             })
-            this.$message.success('提交成功！');
         }
     }
 };

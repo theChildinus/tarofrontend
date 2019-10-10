@@ -16,8 +16,9 @@
                     @click="delAllSelection"
                 >批量删除</el-button>
                 <el-select v-model="query.address" placeholder="资源类型" class="handle-select mr10">
-                    <el-option key="1" label="报表" value="报表"></el-option>
-                    <el-option key="2" label="工具" value="工具"></el-option>
+                    <el-option key="0" label="报表" value="报表"></el-option>
+                    <el-option key="1" label="工具" value="工具"></el-option>
+                    <el-option key="3" label="态势图" value="态势图"></el-option>
                 </el-select>
                 <el-input v-model="query.name" placeholder="用户名" class="handle-input mr10"></el-input>
                 <el-button type="primary" icon="el-icon-search" @click="handleSearch">搜索</el-button>
@@ -120,6 +121,15 @@ export default {
                     console.log(res.data);
                     this.tableData = res.data.list;
                     this.pageTotal = res.data.count || 50;
+                    for (let i = 0; i < this.tableData.length; i++) {
+                        var rtype = this.tableData[i]["resource_type"]
+                        switch (rtype) {
+                            case 0: this.tableData[i]["resource_type"] = "报表"; break;
+                            case 1: this.tableData[i]["resource_type"] = "工具"; break;
+                            case 2: this.tableData[i]["resource_type"] = "态势图"; break;
+                            default: this.tableData[i]["resource_type"] = "-";
+                        }
+                    }
                 });
         },
         // 触发搜索按钮
@@ -134,8 +144,13 @@ export default {
                 type: 'warning'
             })
                 .then(() => {
-                    this.$message.success('删除成功');
                     this.tableData.splice(index, 1);
+                    this.$axios.post('api/resource/deleteOne', {
+                        resource_id: row.resource_id
+                    })
+                    .then(res => {
+                        this.$message.success('删除成功');
+                    })
                 })
                 .catch(() => {});
         },
