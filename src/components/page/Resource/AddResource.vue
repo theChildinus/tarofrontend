@@ -147,8 +147,9 @@ export default {
         onSubmit() {
             
             console.log("onSubmit")
-            this.$axios.post('resource/Create', {
-                resourcename: "kong"
+            this.$axios.post('api/resource/create', {
+                resource_name: "kong",
+                resource_type: 1
             })
             .then( (res) => {
                 console.log(res.data)

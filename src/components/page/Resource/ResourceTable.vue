@@ -31,10 +31,10 @@
                 @selection-change="handleSelectionChange"
             >
                 <el-table-column type="selection" width="55" align="center"></el-table-column>
-                <el-table-column prop="id" label="ID" width="55" align="center"></el-table-column>
-                <el-table-column prop="resname" label="资源名"></el-table-column>
-                <el-table-column prop="restype" label="资源类型"></el-table-column>
-                <el-table-column prop="date" label="添加时间"></el-table-column>
+                <el-table-column prop="resource_id" label="ID" width="55" align="center"></el-table-column>
+                <el-table-column prop="resource_name" label="资源名"></el-table-column>
+                <el-table-column prop="resource_type" label="资源类型"></el-table-column>
+                <el-table-column prop="resource_ctime" label="添加时间"></el-table-column>
                 <el-table-column label="操作" width="180" align="center">
                     <template slot-scope="scope">
                         <el-button
@@ -88,8 +88,6 @@ export default {
     data() {
         return {
             query: {
-                address: '',
-                name: '',
                 pageIndex: 1,
                 pageSize: 10
             },
@@ -113,38 +111,47 @@ export default {
             //     this.tableData = res.list;
             //     this.pageTotal = res.pageTotal || 50;
             // });
-            this.tableData = [
-                {
-                    id: 1,
-                    resname: 'XXXX态势图',
-                    restype: '态势图',
-                    date: '2018-01-22',
-                },
-                {
-                    id: 2,
-                    resname: 'XXXX年度报表',
-                    restype: '报表',
-                    date: '2018-01-22',
-                },
-                {
-                    id: 3,
-                    resname: 'XXXX月度报表',
-                    restype: '报表',
-                    date: '2018-01-22',
-                },
-                {
-                    id: 4,
-                    resname: 'XXXXX工具',
-                    restype: '工具',
-                    date: '2018-01-22',
-                },
-                {
-                    id: 5,
-                    resname: 'XXX工具',
-                    restype: '工具',
-                    date: '2018-01-22',
-                },
-            ]
+            this.$axios.post('api/resource/list', {
+                page_index : this.query.pageIndex,
+                page_size : this.query.pageSize
+            })
+            .then( (res) => {
+                console.log(res.data)
+                this.tableData = res.data.list;
+                this.pageTotal = res.data.count || 50;
+            })
+            // this.tableData = [
+            //     {
+            //         id: 1,
+            //         resname: 'XXXX态势图',
+            //         restype: '态势图',
+            //         date: '2018-01-22',
+            //     },
+            //     {
+            //         id: 2,
+            //         resname: 'XXXX年度报表',
+            //         restype: '报表',
+            //         date: '2018-01-22',
+            //     },
+            //     {
+            //         id: 3,
+            //         resname: 'XXXX月度报表',
+            //         restype: '报表',
+            //         date: '2018-01-22',
+            //     },
+            //     {
+            //         id: 4,
+            //         resname: 'XXXXX工具',
+            //         restype: '工具',
+            //         date: '2018-01-22',
+            //     },
+            //     {
+            //         id: 5,
+            //         resname: 'XXX工具',
+            //         restype: '工具',
+            //         date: '2018-01-22',
+            //     },
+            // ]
         },
         // 触发搜索按钮
         handleSearch() {

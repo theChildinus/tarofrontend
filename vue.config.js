@@ -1,5 +1,5 @@
 module.exports = {
-    publicPath: 'api/',
+    publicPath: '/',
     assetsDir: 'static',
     productionSourceMap: false,
     devServer: {
