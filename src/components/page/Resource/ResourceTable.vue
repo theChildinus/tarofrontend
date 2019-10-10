@@ -111,47 +111,16 @@ export default {
             //     this.tableData = res.list;
             //     this.pageTotal = res.pageTotal || 50;
             // });
-            this.$axios.post('api/resource/list', {
-                page_index : this.query.pageIndex,
-                page_size : this.query.pageSize
-            })
-            .then( (res) => {
-                console.log(res.data)
-                this.tableData = res.data.list;
-                this.pageTotal = res.data.count || 50;
-            })
-            // this.tableData = [
-            //     {
-            //         id: 1,
-            //         resname: 'XXXX态势图',
-            //         restype: '态势图',
-            //         date: '2018-01-22',
-            //     },
-            //     {
-            //         id: 2,
-            //         resname: 'XXXX年度报表',
-            //         restype: '报表',
-            //         date: '2018-01-22',
-            //     },
-            //     {
-            //         id: 3,
-            //         resname: 'XXXX月度报表',
-            //         restype: '报表',
-            //         date: '2018-01-22',
-            //     },
-            //     {
-            //         id: 4,
-            //         resname: 'XXXXX工具',
-            //         restype: '工具',
-            //         date: '2018-01-22',
-            //     },
-            //     {
-            //         id: 5,
-            //         resname: 'XXX工具',
-            //         restype: '工具',
-            //         date: '2018-01-22',
-            //     },
-            // ]
+            this.$axios
+                .post('api/resource/list', {
+                    page_index: this.query.pageIndex,
+                    page_size: this.query.pageSize
+                })
+                .then(res => {
+                    console.log(res.data);
+                    this.tableData = res.data.list;
+                    this.pageTotal = res.data.count || 50;
+                });
         },
         // 触发搜索按钮
         handleSearch() {
