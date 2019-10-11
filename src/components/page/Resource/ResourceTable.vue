@@ -15,12 +15,12 @@
                     class="handle-del mr10"
                     @click="delAllSelection"
                 >批量删除</el-button>
-                <el-select v-model="query.address" placeholder="资源类型" class="handle-select mr10">
-                    <el-option key="0" label="报表" value="报表"></el-option>
-                    <el-option key="1" label="工具" value="工具"></el-option>
-                    <el-option key="3" label="态势图" value="态势图"></el-option>
+                <el-select v-model="search.searchType" placeholder="资源类型" class="handle-select mr10">
+                    <el-option key="0" label="报表" value="0"></el-option>
+                    <el-option key="1" label="工具" value="1"></el-option>
+                    <el-option key="2" label="态势图" value="2"></el-option>
                 </el-select>
-                <el-input v-model="query.name" placeholder="用户名" class="handle-input mr10"></el-input>
+                <el-input v-model="search.searchName" placeholder="资源名称" class="handle-input mr10"></el-input>
                 <el-button type="primary" icon="el-icon-search" @click="handleSearch">搜索</el-button>
             </div>
             <el-table
@@ -96,7 +96,7 @@ export default {
                 pageIndex: 1,
                 pageSize: 10
             },
-            form:{},
+            search: {},
             tableData: [],
             multipleSelection: [],
             delList: [],
@@ -120,7 +120,9 @@ export default {
             this.$axios
                 .post('api/resource/list', {
                     page_index: this.query.pageIndex,
-                    page_size: this.query.pageSize
+                    page_size: this.query.pageSize,
+                    search_type: this.search.searchType == null ? -1 : parseInt(this.search.searchType),
+                    search_name: this.search.searchName == null ? '' : this.search.searchName
                 })
                 .then(res => {
                     console.log(res.data);
