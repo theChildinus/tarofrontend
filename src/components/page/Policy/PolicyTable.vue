@@ -15,12 +15,7 @@
                     class="handle-del mr10"
                     @click="delAllSelection"
                 >批量删除</el-button>
-                <el-select v-model="query.address" placeholder="策略动作" class="handle-select mr10">
-                    <el-option key="1" label="只读" value="只读"></el-option>
-                    <el-option key="2" label="只写" value="只写"></el-option>
-                    <el-option key="2" label="执行" value="执行"></el-option>
-                </el-select>
-                <el-input v-model="query.name" placeholder="用户名" class="handle-input mr10"></el-input>
+                <el-input v-model="search.searchSub" placeholder="主体" class="handle-input mr10"></el-input>
                 <el-button type="primary" icon="el-icon-search" @click="handleSearch">搜索</el-button>
             </div>
             <el-table
@@ -32,12 +27,11 @@
                 @selection-change="handleSelectionChange"
             >
                 <el-table-column type="selection" width="55" align="center"></el-table-column>
-                <el-table-column prop="id" label="ID" width="55" align="center"></el-table-column>
-                <el-table-column prop="sub" label="主体"></el-table-column>
-                <el-table-column prop="res" label="资源"></el-table-column>
-                <el-table-column prop="act" label="动作"></el-table-column>
-                <el-table-column prop="permit" label="许可"></el-table-column>
-                <el-table-column prop="date" label="添加时间"></el-table-column>
+                <el-table-column prop="policy_id" label="ID" width="55" align="center"></el-table-column>
+                <el-table-column prop="policy_sub" label="主体"></el-table-column>
+                <el-table-column prop="policy_obj" label="资源"></el-table-column>
+                <el-table-column prop="policy_act" label="动作"></el-table-column>
+                <el-table-column prop="policy_ctime" label="添加时间"></el-table-column>
                 <el-table-column label="操作" width="180" align="center">
                     <template slot-scope="scope">
                         <el-button
@@ -69,11 +63,18 @@
         <!-- 编辑弹出框 -->
         <el-dialog title="编辑" :visible.sync="editVisible" width="30%">
             <el-form ref="form" :model="form" label-width="70px">
-                <el-form-item label="用户名">
-                    <el-input v-model="form.name"></el-input>
+                <el-form-item label="主体">
+                    <el-input v-model="form.policy_sub"></el-input>
                 </el-form-item>
-                <el-form-item label="地址">
-                    <el-input v-model="form.address"></el-input>
+                <el-form-item label="资源">
+                    <el-input v-model="form.policy_obj"></el-input>
+                </el-form-item>
+                <el-form-item label="动作">
+                    <el-radio-group v-model="form.policy_act">
+                        <el-radio label="read"></el-radio>
+                        <el-radio label="write"></el-radio>
+                        <el-radio label="exec"></el-radio>
+                    </el-radio-group>
                 </el-form-item>
             </el-form>
             <span slot="footer" class="dialog-footer">
@@ -91,11 +92,10 @@ export default {
     data() {
         return {
             query: {
-                address: '',
-                name: '',
                 pageIndex: 1,
                 pageSize: 10
             },
+            search: {},
             tableData: [],
             multipleSelection: [],
             delList: [],
@@ -116,48 +116,17 @@ export default {
             //     this.tableData = res.list;
             //     this.pageTotal = res.pageTotal || 50;
             // });
-            this.tableData = [
-                {
-                    id: 1,
-                    sub: 'zhao',
-                    res: '111111表',
-                    act: 'Write',
-                    permit: '允许',
-                    date: '2018-01-22',
-                },
-                {
-                    id: 2,
-                    sub: 'kong',
-                    res: '222222表',
-                    act: 'Write',
-                    permit: '允许',
-                    date: '2018-01-22',
-                },
-                {
-                    id: 3,
-                    sub: 'yang',
-                    res: '333333表',
-                    act: 'Read',
-                    permit: '允许',
-                    date: '2018-01-22',
-                },
-                {
-                    id: 4,
-                    sub: 'zhao',
-                    res: '111111工具',
-                    act: 'Write',
-                    permit: '拒绝',
-                    date: '2018-01-22',
-                },
-                {
-                    id: 5,
-                    sub: 'zhao',
-                    res: '111111表',
-                    act: 'Write',
-                    permit: '允许',
-                    date: '2018-01-22',
-                },
-            ]
+            this.$axios
+                .post('api/policy/list', {
+                    page_index: this.query.pageIndex,
+                    page_size: this.query.pageSize,
+                    search_sub: this.search.searchSub == null ? '' : this.search.searchSub
+                })
+                .then(res => {
+                    console.log(res.data);
+                    this.tableData = res.data.list;
+                    this.pageTotal = res.data.count || 50;
+                });
         },
         // 触发搜索按钮
         handleSearch() {
@@ -171,8 +140,14 @@ export default {
                 type: 'warning'
             })
                 .then(() => {
-                    this.$message.success('删除成功');
                     this.tableData.splice(index, 1);
+                    this.$axios.post('api/policy/deleteOne', {
+                        policy_id: row.policy_id
+                    })
+                    .then(res => {
+                        this.$message.success('删除成功');
+                    })
+                    
                 })
                 .catch(() => {});
         },
@@ -199,7 +174,15 @@ export default {
         // 保存编辑
         saveEdit() {
             this.editVisible = false;
-            this.$message.success(`修改第 ${this.idx + 1} 行成功`);
+            this.$axios.post('api/policy/update', {
+                policy_id: this.form.policy_id,
+                policy_sub: this.form.policy_sub,
+                policy_obj: this.form.policy_obj,
+                policy_act: this.form.policy_act
+            })
+            .then( (res) => {
+                this.$message.success(`修改第 ${this.idx + 1} 行成功`);
+            })
             this.$set(this.tableData, this.idx, this.form);
         },
         // 分页导航

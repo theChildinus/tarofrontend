@@ -73,7 +73,7 @@ export default {
                 },
                 {
                     icon: 'el-icon-key',
-                    index: 'permissiontable',
+                    index: 'policytable',
                     title: '权限管理'
                 },
                 {

@@ -42,17 +42,17 @@ export default new Router({
                 {
                     path: '/addresource',
                     component: () => import(/* webpackChunkName: "table" */ '../components/page/Resource/AddResource.vue'),
-                    meta: { title: '资源管理' }
+                    meta: { title: '添加资源' }
                 },
                 {
-                    path: '/permissiontable',
-                    component: () => import(/* webpackChunkName: "table" */ '../components/page/Policy/PermissionTable.vue'),
+                    path: '/policytable',
+                    component: () => import(/* webpackChunkName: "table" */ '../components/page/Policy/PolicyTable.vue'),
                     meta: { title: '权限管理' }
                 },
                 {
-                    path: '/addpermission',
-                    component: () => import(/* webpackChunkName: "table" */ '../components/page/Policy/AddPermission.vue'),
-                    meta: { title: '权限管理' }
+                    path: '/addPolicy',
+                    component: () => import(/* webpackChunkName: "table" */ '../components/page/Policy/AddPolicy.vue'),
+                    meta: { title: '添加策略' }
                 },
                 {
                     path: '/tabs',
