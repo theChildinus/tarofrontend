@@ -67,11 +67,15 @@
         <!-- 编辑弹出框 -->
         <el-dialog title="编辑" :visible.sync="editVisible" width="30%">
             <el-form ref="form" :model="form" label-width="70px">
-                <el-form-item label="用户名">
-                    <el-input v-model="form.name"></el-input>
+                <el-form-item label="资源名称">
+                    <el-input v-model="form.resource_name"></el-input>
                 </el-form-item>
-                <el-form-item label="地址">
-                    <el-input v-model="form.address"></el-input>
+                <el-form-item label="资源类型">
+                    <el-radio-group v-model="form.resource_type">
+                        <el-radio label="报表"></el-radio>
+                        <el-radio label="工具"></el-radio>
+                        <el-radio label="态势图"></el-radio>
+                    </el-radio-group>
                 </el-form-item>
             </el-form>
             <span slot="footer" class="dialog-footer">
@@ -92,6 +96,7 @@ export default {
                 pageIndex: 1,
                 pageSize: 10
             },
+            form:{},
             tableData: [],
             multipleSelection: [],
             delList: [],
@@ -177,7 +182,22 @@ export default {
         // 保存编辑
         saveEdit() {
             this.editVisible = false;
-            this.$message.success(`修改第 ${this.idx + 1} 行成功`);
+            var type;
+            switch (this.form.resource_type) {
+                case "报表": type = 0; break;
+                case "工具": type = 1; break;
+                case "态势图": type = 2; break;
+                default: type = -1;
+            }
+            this.$axios.post('api/resource/update', {
+                resource_id: this.form.resource_id,
+                resource_name: this.form.resource_name,
+                resource_type: type
+            })
+            .then( (res) => {
+                this.$message.success(`修改第 ${this.idx + 1} 行成功`);
+            })
+            
             this.$set(this.tableData, this.idx, this.form);
         },
         // 分页导航
