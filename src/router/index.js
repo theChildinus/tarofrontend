@@ -35,6 +35,11 @@ export default new Router({
                     meta: { title: '身份管理' }
                 },
                 {
+                    path: '/adduser',
+                    component: () => import(/* webpackChunkName: "table" */ '../components/page/User/AddUser.vue'),
+                    meta: { title: '添加用户' }
+                },
+                {
                     path: '/resourcetable',
                     component: () => import(/* webpackChunkName: "table" */ '../components/page/Resource/ResourceTable.vue'),
                     meta: { title: '资源管理' }

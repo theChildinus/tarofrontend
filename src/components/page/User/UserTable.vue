@@ -15,11 +15,7 @@
                     class="handle-del mr10"
                     @click="delAllSelection"
                 >批量删除</el-button>
-                <el-select v-model="query.address" placeholder="身份" class="handle-select mr10">
-                    <el-option key="1" label="管理员" value="管理员"></el-option>
-                    <el-option key="2" label="组长" value="组长"></el-option>
-                </el-select>
-                <el-input v-model="query.name" placeholder="用户名" class="handle-input mr10"></el-input>
+                <el-input v-model="search.searchName" placeholder="用户名" class="handle-input mr10"></el-input>
                 <el-button type="primary" icon="el-icon-search" @click="handleSearch">搜索</el-button>
             </div>
             <el-table
@@ -31,21 +27,20 @@
                 @selection-change="handleSelectionChange"
             >
                 <el-table-column type="selection" width="55" align="center"></el-table-column>
-                <el-table-column prop="id" label="ID" width="55" align="center"></el-table-column>
-                <el-table-column prop="name" label="用户名"></el-table-column>
-                <el-table-column prop="identity" label="身份"></el-table-column>
-                <el-table-column prop="department" label="部门"></el-table-column>
-                <el-table-column prop="connection" label="联系方式"></el-table-column>
-                <el-table-column prop="address" label="地址"></el-table-column>
+                <el-table-column prop="user_id" label="ID" width="55" align="center"></el-table-column>
+                <el-table-column prop="user_name" label="用户名"></el-table-column>
+                <el-table-column prop="user_role" label="用户身份"></el-table-column>
+                <el-table-column prop="user_department" label="部门"></el-table-column>
+                <el-table-column prop="user_address" label="地址"></el-table-column>
+                <el-table-column prop="user_email" label="电子邮箱"></el-table-column>
+                <el-table-column prop="user_phone" label="联系方式"></el-table-column>
                 <el-table-column label="状态" align="center">
                     <template slot-scope="scope">
                         <el-tag
-                            :type="scope.row.state==='成功'?'success':(scope.row.state==='失败'?'danger':'')"
-                        >{{scope.row.state}}</el-tag>
+                            :type="scope.row.user_status===1?'success':(scope.row.user_status===0?'danger':'')"
+                        >{{scope.row.user_status == 1? "已授权":"未授权"}}</el-tag>
                     </template>
                 </el-table-column>
-
-                <el-table-column prop="date" label="注册时间"></el-table-column>
                 <el-table-column label="操作" width="180" align="center">
                     <template slot-scope="scope">
                         <el-button
@@ -78,11 +73,27 @@
         <el-dialog title="编辑" :visible.sync="editVisible" width="30%">
             <el-form ref="form" :model="form" label-width="70px">
                 <el-form-item label="用户名">
-                    <el-input v-model="form.name"></el-input>
+                    <el-input v-model="form.user_name"></el-input>
                 </el-form-item>
-                <el-form-item label="地址">
-                    <el-input v-model="form.address"></el-input>
-                </el-form-item>
+                <el-form-item label="身份">
+                        <el-radio-group v-model="form.user_role">
+                            <el-radio label="管理员"></el-radio>
+                            <el-radio label="员工"></el-radio>
+                            <el-radio label="经理"></el-radio>
+                        </el-radio-group>
+                    </el-form-item>
+                    <el-form-item label="部门">
+                        <el-input v-model="form.user_department"></el-input>
+                    </el-form-item>
+                    <el-form-item label="地址">
+                        <el-input v-model="form.user_address"></el-input>
+                    </el-form-item>
+                    <el-form-item label="电子邮箱">
+                        <el-input v-model="form.user_email"></el-input>
+                    </el-form-item>
+                    <el-form-item label="联系电话">
+                        <el-input v-model="form.user_phone"></el-input>
+                    </el-form-item>
             </el-form>
             <span slot="footer" class="dialog-footer">
                 <el-button @click="editVisible = false">取 消</el-button>
@@ -99,11 +110,10 @@ export default {
     data() {
         return {
             query: {
-                address: '',
-                name: '',
                 pageIndex: 1,
                 pageSize: 10
             },
+            search: {},
             tableData: [],
             multipleSelection: [],
             delList: [],
@@ -124,53 +134,17 @@ export default {
             //     this.tableData = res.list;
             //     this.pageTotal = res.pageTotal || 50;
             // });
-            this.tableData = [
-                {
-                    id: 1,
-                    name: 'zhao',
-                    identity: '管理员',
-                    department: '部门1',
-                    connection: '1231231231',
-                    address: '333333',
-                    date: '2018-01-22',
-                },
-                {
-                    id: 2,
-                    name: 'zhao',
-                    identity: '管理员',
-                    department: '部门1',
-                    connection: '1231231231',
-                    address: '333333',
-                    date: '2018-01-22',
-                },
-                {
-                    id: 3,
-                    name: 'kong',
-                    identity: '管理员',
-                    department: '部门1',
-                    connection: '1231231231',
-                    address: '333333',
-                    date: '2018-01-22',
-                },
-                {
-                    id: 4,
-                    name: 'yang',
-                    identity: '经理',
-                    department: '部门2',
-                    connection: '123123232321',
-                    address: '3344433',
-                    date: '2018-01-22',
-                },
-                {
-                    id: 5,
-                    name: 'zhao',
-                    identity: '管理员',
-                    department: '部门1',
-                    connection: '1231231231',
-                    address: '333333',
-                    date: '2018-01-22',
-                },
-            ]
+            this.$axios
+                .post('api/user/list', {
+                    page_index: this.query.pageIndex,
+                    page_size: this.query.pageSize,
+                    search_name: this.search.searchName == null ? '' : this.search.searchName
+                })
+                .then(res => {
+                    console.log(res.data);
+                    this.tableData = res.data.list;
+                    this.pageTotal = res.data.count || 50;
+                });
         },
         // 触发搜索按钮
         handleSearch() {
@@ -184,8 +158,14 @@ export default {
                 type: 'warning'
             })
                 .then(() => {
-                    this.$message.success('删除成功');
                     this.tableData.splice(index, 1);
+                    this.$axios
+                        .post('api/user/deleteOne', {
+                            user_id: row.user_id
+                        })
+                        .then(res => {
+                            this.$message.success('删除成功');
+                        });
                 })
                 .catch(() => {});
         },
@@ -212,7 +192,20 @@ export default {
         // 保存编辑
         saveEdit() {
             this.editVisible = false;
-            this.$message.success(`修改第 ${this.idx + 1} 行成功`);
+            this.$axios
+                .post('api/user/update', {
+                    user_id: this.form.user_id,
+                    user_name: this.form.resource_name,
+                    user_role: this.form.user_role,
+                    user_department: this.form.user_department,
+                    user_address: this.form.user_address,
+                    user_email: this.form.user_email,
+                    user_phone: this.form.user_phone
+                })
+                .then(res => {
+                    this.$message.success(`修改第 ${this.idx + 1} 行成功`);
+                });
+
             this.$set(this.tableData, this.idx, this.form);
         },
         // 分页导航
