@@ -79,7 +79,7 @@ export default {
                 {
                     icon: 'el-icon-plus',
                     index: '3',
-                    title: '添加数据',
+                    title: '数据管理',
                     subs: [
                         {
                             index: 'adduser',
@@ -92,6 +92,10 @@ export default {
                         {
                             index: 'addpolicy',
                             title: '添加策略'
+                        },
+                        {
+                            index: 'editdepartment',
+                            title: '编辑组织结构'
                         },
                     ]
                 },

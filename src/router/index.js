@@ -55,9 +55,14 @@ export default new Router({
                     meta: { title: '权限管理' }
                 },
                 {
-                    path: '/addPolicy',
+                    path: '/addpolicy',
                     component: () => import(/* webpackChunkName: "table" */ '../components/page/Policy/AddPolicy.vue'),
                     meta: { title: '添加策略' }
+                },
+                {
+                    path: '/editdepartment',
+                    component: () => import(/* webpackChunkName: "table" */ '../components/page/User/EditDepartment.vue'),
+                    meta: { title: '编辑组织结构' }
                 },
                 {
                     path: '/tabs',
