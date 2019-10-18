@@ -45,6 +45,12 @@
                     <template slot-scope="scope">
                         <el-button
                             type="text"
+                            icon="el-icon-postcard"
+                            class="orange"
+                            @click="handleRegister(scope.$index, scope.row)"
+                        >授权</el-button>
+                        <el-button
+                            type="text"
                             icon="el-icon-edit"
                             @click="handleEdit(scope.$index, scope.row)"
                         >编辑</el-button>
@@ -212,6 +218,24 @@ export default {
         handlePageChange(val) {
             this.$set(this.query, 'pageIndex', val);
             this.getData();
+        },
+        handleRegister(index, row) {
+            this.$axios
+                .post('api/user/register', {
+                    register_id: row.user_id,
+                    register_name: row.user_name,
+                })
+                .then(res => {
+                    console.log(res.data);
+                    if (res.data.Code == 0) {
+                        this.$message.success(`授权成功，请刷新页面`);
+                    } else {
+                        this.$message.error(`授权失败`);
+                    }
+                });
+        },
+        handleEditRole() {
+            console.log("EditRole")
         }
     }
 };
@@ -233,6 +257,9 @@ export default {
 .table {
     width: 100%;
     font-size: 14px;
+}
+.orange {
+    color:#E6A23C;
 }
 .red {
     color: #ff0000;
