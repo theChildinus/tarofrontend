@@ -244,21 +244,27 @@ export default {
             this.getData();
         },
         handleRegister(index, row) {
-            this.$axios
-                .post('api/user/register', {
-                    register_id: row.user_id,
-                    register_name: row.user_name,
+            this.$confirm('确定要授权吗？', '提示', {
+                type: 'warning'
+            })
+                .then(() => {
+                    this.$axios
+                    .post('api/user/register', {
+                        register_id: row.user_id,
+                        register_name: row.user_name,
+                    })
+                    .then(res => {
+                        console.log(res.data);
+                        if (res.data.Code == 0) {
+                            this.$message.success(`授权成功，请刷新页面`);
+                        } else {
+                            this.$message.error(`授权失败`);
+                        }
+                    });
                 })
-                .then(res => {
-                    console.log(res.data);
-                    if (res.data.Code == 0) {
-                        this.$message.success(`授权成功，请刷新页面`);
-                    } else {
-                        this.$message.error(`授权失败`);
-                    }
-                });
+                .catch(() => {});        
         },
-        // 获取策略动作数据
+        // 获取用户角色数据
         getEnumData() {
             this.$axios
                 .post('api/enum/getValue', {
@@ -270,11 +276,11 @@ export default {
                     this.parseEnumData(this.enumObj.enum_value);
                 });
         },
-        // 触发策略动作编辑
+        // 触发用户角色编辑
         handleEnumEdit() {
             this.editEnumVisible = true;
         },
-        // 保存策略动作编辑
+        // 保存用户角色编辑
         saveEnumEdit() {
             this.editEnumVisible = false;
             this.$axios
@@ -288,7 +294,7 @@ export default {
                     this.$message.success(`保存成功`);
                 });
         },
-        // 处理策略动作数据
+        // 处理用户角色数据
         parseEnumData(data) {
             var str = data.split('##');
             for (var i = 0; i < str.length; i++) {
