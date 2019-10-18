@@ -18,14 +18,13 @@
                         <el-input v-model="form.obj"></el-input>
                     </el-form-item>
                     <el-form-item label="动作">
-                        <el-radio-group v-model="form.act">
-                            <el-radio label="read"></el-radio>
-                            <el-radio label="write"></el-radio>
-                            <el-radio label="exec"></el-radio>
-                        </el-radio-group>
+                        <el-select v-model="form.act" placeholder="策略动作" class="handle-select mr10">
+                        <el-option v-for="item in enumValueList" :key="item" :label="item" :value="item"></el-option>
+                        </el-select>
                     </el-form-item>
                     <el-form-item>
                         <el-button type="primary" @click="onSubmit">表单提交</el-button>
+                        <el-button type="danger" @click="onClear">清空</el-button>
                         <el-button>取消</el-button>
                     </el-form-item>
                 </el-form>
@@ -43,8 +42,12 @@ export default {
                 sub: '',
                 obj: '',
                 act: ''
-            }
+            },
+            enumValueList: []
         };
+    },
+    created() {
+        this.getEnumData();
     },
     methods: {
         onSubmit() {
@@ -57,6 +60,31 @@ export default {
             .then( (res) => {
                 this.$message.success('提交成功！');    
             })
+        },
+        onClear() {
+            this.form = {};
+        },
+        // 获取策略动作数据
+        getEnumData() {
+            this.$axios
+                .post('api/enum/getValue', {
+                    enum_key: 'policy_act'
+                })
+                .then(res => {
+                    // console.log('resdata: ', res.data);
+                    this.parseEnumData(res.data.enum_value);
+                });
+        },
+        // 处理策略动作数据
+        parseEnumData(data) {
+            var str = data.split('##');
+            for (var i = 0; i < str.length; i++) {
+                if (str[i] == '' || typeof str[i] == 'undefined') {
+                    str.splice(i, 1);
+                    i = i - 1;
+                }
+            }
+            this.enumValueList = str;
         }
     }
 };
