@@ -9,19 +9,24 @@
         </div>
         <div class="container">
             <div class="handle-box">
-                <el-button
+                <!-- <el-button
                     type="primary"
                     icon="el-icon-delete"
                     class="handle-del mr10"
                     @click="delAllSelection"
-                >批量删除</el-button>
-                <el-select v-model="search.searchType" placeholder="资源类型" class="handle-select mr10">
-                    <el-option key="0" label="报表" value="0"></el-option>
-                    <el-option key="1" label="工具" value="1"></el-option>
-                    <el-option key="2" label="态势图" value="2"></el-option>
+                >批量删除</el-button> -->
+                <el-select
+                    v-model="search.searchType"
+                    placeholder="资源类型"
+                    class="handle-select mr10"
+                >
+                    <el-option v-for="item in enumValueList" :key="item" :label="item" :value="item"></el-option>
                 </el-select>
                 <el-input v-model="search.searchName" placeholder="资源名称" class="handle-input mr10"></el-input>
                 <el-button type="primary" icon="el-icon-search" @click="handleSearch">搜索</el-button>
+                <el-button type="primary" icon="el-icon-refresh" @click="handleRefresh">刷新</el-button>
+                <el-button type="danger"  icon="el-icon-delete" @click="clearSelection">清空</el-button>
+                <el-button type="primary" icon="el-icon-edit" @click="handleEnumEdit">编辑资源类型</el-button>
             </div>
             <el-table
                 :data="tableData"
@@ -71,16 +76,27 @@
                     <el-input v-model="form.resource_name"></el-input>
                 </el-form-item>
                 <el-form-item label="资源类型">
-                    <el-radio-group v-model="form.resource_type">
-                        <el-radio label="报表"></el-radio>
-                        <el-radio label="工具"></el-radio>
-                        <el-radio label="态势图"></el-radio>
-                    </el-radio-group>
+                    <el-select
+                    v-model="form.resource_type"
+                    placeholder="资源类型"
+                    class="handle-select mr10"
+                >
+                    <el-option v-for="item in enumValueList" :key="item" :label="item" :value="item"></el-option>
+                </el-select>
                 </el-form-item>
             </el-form>
             <span slot="footer" class="dialog-footer">
                 <el-button @click="editVisible = false">取 消</el-button>
                 <el-button type="primary" @click="saveEdit">确 定</el-button>
+            </span>
+        </el-dialog>
+
+        <!-- 编辑资源类型弹出框 -->
+        <el-dialog title="编辑资源类型（以 ## 分隔）" :visible.sync="editEnumVisible" width="30%">
+            <el-input type="textarea" autosize placeholder="请输入内容" v-model="enumObj.enum_value"></el-input>
+            <span slot="footer" class="dialog-footer">
+                <el-button @click="editEnumVisible = false">取 消</el-button>
+                <el-button type="primary" @click="saveEnumEdit">保 存</el-button>
             </span>
         </el-dialog>
     </div>
@@ -100,7 +116,10 @@ export default {
             tableData: [],
             multipleSelection: [],
             delList: [],
+            enumObj: {},
+            enumValueList: [],
             editVisible: false,
+            editEnumVisible: false,
             pageTotal: 0,
             form: {},
             idx: -1,
@@ -109,9 +128,10 @@ export default {
     },
     created() {
         this.getData();
+        this.getEnumData();
     },
     methods: {
-        // 获取 easy-mock 的模拟数据
+        // 获取后台数据
         getData() {
             // fetchData(this.query).then(res => {
             //     this.tableData = res.list;
@@ -121,22 +141,13 @@ export default {
                 .post('api/resource/list', {
                     page_index: this.query.pageIndex,
                     page_size: this.query.pageSize,
-                    search_type: this.search.searchType == null ? -1 : parseInt(this.search.searchType),
+                    search_type: this.search.searchType == null ? '' : this.search.searchType,
                     search_name: this.search.searchName == null ? '' : this.search.searchName
                 })
                 .then(res => {
                     console.log(res.data);
                     this.tableData = res.data.list;
                     this.pageTotal = res.data.count || 50;
-                    for (let i = 0; i < this.tableData.length; i++) {
-                        var rtype = this.tableData[i]["resource_type"]
-                        switch (rtype) {
-                            case 0: this.tableData[i]["resource_type"] = "报表"; break;
-                            case 1: this.tableData[i]["resource_type"] = "工具"; break;
-                            case 2: this.tableData[i]["resource_type"] = "态势图"; break;
-                            default: this.tableData[i]["resource_type"] = "-";
-                        }
-                    }
                 });
         },
         // 触发搜索按钮
@@ -152,12 +163,13 @@ export default {
             })
                 .then(() => {
                     this.tableData.splice(index, 1);
-                    this.$axios.post('api/resource/deleteOne', {
-                        resource_id: row.resource_id
-                    })
-                    .then(res => {
-                        this.$message.success('删除成功');
-                    })
+                    this.$axios
+                        .post('api/resource/deleteOne', {
+                            resource_id: row.resource_id
+                        })
+                        .then(res => {
+                            this.$message.success('删除成功');
+                        });
                 })
                 .catch(() => {});
         },
@@ -175,6 +187,12 @@ export default {
             this.$message.error(`删除了${str}`);
             this.multipleSelection = [];
         },
+        handleRefresh() {
+            this.getData();
+        },
+        clearSelection() {
+            this.search = {};
+        },
         // 编辑操作
         handleEdit(index, row) {
             this.idx = index;
@@ -184,28 +202,63 @@ export default {
         // 保存编辑
         saveEdit() {
             this.editVisible = false;
-            var type;
-            switch (this.form.resource_type) {
-                case "报表": type = 0; break;
-                case "工具": type = 1; break;
-                case "态势图": type = 2; break;
-                default: type = -1;
-            }
-            this.$axios.post('api/resource/update', {
-                resource_id: this.form.resource_id,
-                resource_name: this.form.resource_name,
-                resource_type: type
-            })
-            .then( (res) => {
-                this.$message.success(`修改第 ${this.idx + 1} 行成功`);
-            })
-            
+            this.$axios
+                .post('api/resource/update', {
+                    resource_id: this.form.resource_id,
+                    resource_name: this.form.resource_name,
+                    resource_type: this.form.resource_type
+                })
+                .then(res => {
+                    this.$message.success(`修改第 ${this.idx + 1} 行成功`);
+                });
+
             this.$set(this.tableData, this.idx, this.form);
         },
         // 分页导航
         handlePageChange(val) {
             this.$set(this.query, 'pageIndex', val);
             this.getData();
+        },
+        // 获取资源类型数据
+        getEnumData() {
+            this.$axios
+                .post('api/enum/getValue', {
+                    enum_key: 'resource_type'
+                })
+                .then(res => {
+                    // console.log('resdata: ', res.data);
+                    this.enumObj = res.data;
+                    this.parseEnumData(this.enumObj.enum_value);
+                });
+        },
+        // 触发资源类型编辑
+        handleEnumEdit() {
+            this.editEnumVisible = true;
+        },
+        // 保存资源类型编辑
+        saveEnumEdit() {
+            this.editEnumVisible = false;
+            this.$axios
+                .post('api/enum/putValue', {
+                    enum_id: this.enumObj.enum_id,
+                    enum_key: this.enumObj.enum_key,
+                    enum_value: this.enumObj.enum_value
+                })
+                .then(res => {
+                    this.parseEnumData(this.enumObj.enum_value);
+                    this.$message.success(`保存成功`);
+                });
+        },
+        // 处理资源类型数据
+        parseEnumData(data) {
+            var str = data.split('##');
+            for (var i = 0; i < str.length; i++) {
+                if (str[i] == '' || typeof str[i] == 'undefined') {
+                    str.splice(i, 1);
+                    i = i - 1;
+                }
+            }
+            this.enumValueList = str;
         }
     }
 };
