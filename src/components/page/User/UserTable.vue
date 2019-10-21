@@ -59,6 +59,11 @@
                         >编辑</el-button>
                         <el-button
                             type="text"
+                            icon="el-icon-download"
+                            @click="handleDownload(scope.$index, scope.row)"
+                        >下载卡</el-button>
+                        <el-button
+                            type="text"
                             icon="el-icon-delete"
                             class="red"
                             @click="handleDelete(scope.$index, scope.row)"
@@ -198,6 +203,44 @@ export default {
                         });
                 })
                 .catch(() => {});
+        },
+        handleDownload(index, row) {
+            this.$axios({
+                method: 'post',
+                url: 'api/user/downloadCard',
+                data: {
+                    register_id: row.user_id,
+                    register_name: row.user_name
+                },
+            })
+            .then(res => {
+                if (res.data.card != '' && res.data.card != undefined) {
+                    console.log("download userid: " + row.user_id);
+                    const content = res.data.card;
+                    const blob = new Blob([content]);
+                    const fileName =  row.user_name + ".card";
+                    if ("download" in document.createElement("a")) {
+                        // 非IE下载
+                        const elink = document.createElement("a");
+                        elink.download = fileName;
+                        elink.style.display = "none";
+                        elink.href = URL.createObjectURL(blob);
+                        document.body.appendChild(elink);
+                        elink.click();
+                        URL.revokeObjectURL(elink.href); // 释放URL 对象
+                        document.body.removeChild(elink);
+                    } else {
+                        // IE10+下载
+                        navigator.msSaveBlob(blob, fileName);
+                    }
+                    this.$message.success(`下载成功`);
+                } else {
+                    this.$message.error("下载失败");
+                }
+            })
+            .catch(() => {
+                this.$message.error("下载失败");
+            });
         },
         // 多选操作
         handleSelectionChange(val) {
