@@ -15,11 +15,18 @@
                     class="handle-del mr10"
                     @click="delAllSelection"
                 >批量删除</el-button> -->
-                <el-input v-model="search.searchName" placeholder="用户名" class="handle-input mr10"></el-input>
-                <el-button type="primary" icon="el-icon-search" @click="handleSearch">搜索</el-button>
-                <el-button type="primary" icon="el-icon-refresh" @click="handleRefresh">刷新</el-button>
-                <el-button type="danger" icon="el-icon-delete" @click="clearSelection">清空</el-button>
-                <el-button type="primary" icon="el-icon-edit" @click="handleEnumEdit">编辑用户身份</el-button>
+                <el-row>
+                    <el-col :span='12'>
+                        <el-input v-model="search.searchName" placeholder="用户名" class="handle-input mr10"></el-input>
+                        <el-button type="primary" icon="el-icon-search" @click="handleSearch">搜索</el-button>
+                        <el-button type="primary" icon="el-icon-refresh" @click="handleRefresh">刷新</el-button>
+                        <el-button type="danger" icon="el-icon-delete" @click="clearSelection">清空</el-button>
+                        <el-button type="primary" icon="el-icon-edit" @click="handleEnumEdit">编辑用户身份</el-button>
+                    </el-col>
+                    <el-col :span='6' :offset='6'>
+                        <el-alert title="请保证用户名唯一，重名用户可添加数字进行区分" type="info" :closable="false" center show-icon></el-alert>
+                    </el-col>
+                </el-row>
             </div>
             <el-table
                 :data="tableData"
