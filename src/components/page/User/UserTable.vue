@@ -209,8 +209,8 @@ export default {
                 method: 'post',
                 url: 'api/user/downloadCard',
                 data: {
-                    register_id: row.user_id,
-                    register_name: row.user_name
+                    userid: row.user_id,
+                    username: row.user_name
                 },
             })
             .then(res => {
@@ -293,8 +293,8 @@ export default {
                 .then(() => {
                     this.$axios
                     .post('api/user/register', {
-                        register_id: row.user_id,
-                        register_name: row.user_name,
+                        userid: row.user_id,
+                        username: row.user_name,
                     })
                     .then(res => {
                         console.log(res.data);
