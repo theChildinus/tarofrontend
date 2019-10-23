@@ -15,7 +15,7 @@
                         <el-input v-model="form.user_name"></el-input>
                     </el-form-item>
                     <el-form-item label="身份">
-                        <el-select v-model="form.type" placeholder="用户身份" class="handle-select mr10">
+                        <el-select v-model="form.user_role" placeholder="用户身份" class="handle-select mr10">
                             <el-option v-for="item in enumValueList" :key="item" :label="item" :value="item"></el-option>
                         </el-select>
                     </el-form-item>

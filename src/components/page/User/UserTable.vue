@@ -203,10 +203,16 @@ export default {
                     this.tableData.splice(index, 1);
                     this.$axios
                         .post('api/user/deleteOne', {
-                            user_id: row.user_id
+                            user_id: row.user_id,
+                            user_name: row.user_name,
+                            user_role: row.user_role,
                         })
                         .then(res => {
-                            this.$message.success('删除成功');
+                            if (res.data.Code == 0) {
+                                this.$message.success('删除成功');
+                            } else {
+                                this.$message.success('删除失败');
+                            }
                         });
                 })
                 .catch(() => {});
@@ -275,7 +281,7 @@ export default {
             this.$axios
                 .post('api/user/update', {
                     user_id: this.form.user_id,
-                    user_name: this.form.resource_name,
+                    user_name: this.form.user_name,
                     user_role: this.form.user_role,
                     user_department: this.form.user_department,
                     user_address: this.form.user_address,
@@ -283,7 +289,11 @@ export default {
                     user_phone: this.form.user_phone
                 })
                 .then(res => {
-                    this.$message.success(`修改第 ${this.idx + 1} 行成功`);
+                    if (res.data.Code == 0) {
+                        this.$message.success(`修改第 ${this.idx + 1} 行成功`);
+                    } else {
+                        this.$message.error(`修改第 ${this.idx + 1} 行失败`);
+                    }
                 });
 
             this.$set(this.tableData, this.idx, this.form);
