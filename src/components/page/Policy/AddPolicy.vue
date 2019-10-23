@@ -11,14 +11,16 @@
         <div class="container">
             <div class="form-box">
                 <el-form ref="form" :model="form" label-width="80px">
-                    <el-form-item label="主体">
-                        <el-input v-model="form.sub"></el-input>
+                    <el-form-item label="策略主体">
+                        <el-select v-model="form.sub" placeholder="请选择" class="handle-select mr10">
+                        <el-option v-for="item in nameAndRolesList" :key="item" :label="item" :value="item"></el-option>
+                        </el-select>
                     </el-form-item>
-                    <el-form-item label="资源">
+                    <el-form-item label="策略资源">
                         <el-input v-model="form.obj"></el-input>
                     </el-form-item>
-                    <el-form-item label="动作">
-                        <el-select v-model="form.act" placeholder="策略动作" class="handle-select mr10">
+                    <el-form-item label="策略动作">
+                        <el-select v-model="form.act" placeholder="请选择" class="handle-select mr10">
                         <el-option v-for="item in enumValueList" :key="item" :label="item" :value="item"></el-option>
                         </el-select>
                     </el-form-item>
@@ -43,11 +45,13 @@ export default {
                 obj: '',
                 act: ''
             },
-            enumValueList: []
+            enumValueList: [],
+            nameAndRolesList: [],
         };
     },
     created() {
         this.getEnumData();
+        this.getNameAndRolesData();
     },
     methods: {
         onSubmit() {
@@ -63,6 +67,16 @@ export default {
         },
         onClear() {
             this.form = {};
+        },
+        // 获取所有用户名和角色
+        getNameAndRolesData() {
+            this.$axios
+                .post('api/user/listNameAndRole', {
+                })
+                .then(res => {
+                    console.log('resdata: ', res.data);
+                    this.nameAndRolesList = res.data.list;
+                });
         },
         // 获取策略动作数据
         getEnumData() {

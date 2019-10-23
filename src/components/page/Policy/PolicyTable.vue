@@ -67,7 +67,7 @@
         <el-dialog title="编辑" :visible.sync="editVisible" width="30%">
             <el-form ref="form" :model="form" label-width="70px">
                 <el-form-item label="主体">
-                    <el-input v-model="form.policy_sub"></el-input>
+                    <el-input v-model="form.policy_sub" :disabled="true"></el-input>
                 </el-form-item>
                 <el-form-item label="资源">
                     <el-input v-model="form.policy_obj"></el-input>
