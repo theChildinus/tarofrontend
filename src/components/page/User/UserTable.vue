@@ -44,11 +44,11 @@
                 <el-table-column prop="user_address" label="地址"></el-table-column>
                 <el-table-column prop="user_email" label="电子邮箱"></el-table-column>
                 <el-table-column prop="user_phone" label="联系方式"></el-table-column>
-                <el-table-column label="状态" align="center">
+                <el-table-column label="证书状态" align="center">
                     <template slot-scope="scope">
                         <el-tag
                             :type="scope.row.user_status===1?'success':(scope.row.user_status===0?'danger':'')"
-                        >{{scope.row.user_status == 1? "已授权":"未授权"}}</el-tag>
+                        >{{scope.row.user_status == 1? "已创建":"未创建"}}</el-tag>
                     </template>
                 </el-table-column>
                 <el-table-column label="操作" width="180" align="center">
@@ -58,7 +58,7 @@
                             icon="el-icon-postcard"
                             class="orange"
                             @click="handleRegister(scope.$index, scope.row)"
-                        >授权</el-button>
+                        >创建证书</el-button>
                         <el-button
                             type="text"
                             icon="el-icon-edit"
@@ -68,7 +68,7 @@
                             type="text"
                             icon="el-icon-download"
                             @click="handleDownload(scope.$index, scope.row)"
-                        >下载卡</el-button>
+                        >下载证书</el-button>
                         <el-button
                             type="text"
                             icon="el-icon-delete"
@@ -220,18 +220,18 @@ export default {
         handleDownload(index, row) {
             this.$axios({
                 method: 'post',
-                url: 'api/user/downloadCard',
+                url: 'api/user/downloadCert',
                 data: {
                     userid: row.user_id,
                     username: row.user_name
                 },
             })
             .then(res => {
-                if (res.data.card != '' && res.data.card != undefined) {
+                if (res.data.cert != '' && res.data.cert != undefined) {
                     console.log("download userid: " + row.user_id);
-                    const content = res.data.card;
+                    const content = res.data.cert;
                     const blob = new Blob([content]);
-                    const fileName =  row.user_name + ".card";
+                    const fileName =  row.user_name + ".crt";
                     if ("download" in document.createElement("a")) {
                         // 非IE下载
                         const elink = document.createElement("a");
@@ -304,7 +304,7 @@ export default {
             this.getData();
         },
         handleRegister(index, row) {
-            this.$confirm('确定要授权吗？', '提示', {
+            this.$confirm('确定要创建吗？', '提示', {
                 type: 'warning'
             })
                 .then(() => {
@@ -316,9 +316,9 @@ export default {
                     .then(res => {
                         console.log(res.data);
                         if (res.data.Code == 0) {
-                            this.$message.success(`授权成功，请刷新页面`);
+                            this.$message.success(`创建成功，请刷新页面`);
                         } else {
-                            this.$message.error(`授权失败`);
+                            this.$message.error(`创建失败`);
                         }
                     });
                 })
