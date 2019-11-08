@@ -51,7 +51,7 @@
                         >{{scope.row.user_status == 1? "已创建":"未创建"}}</el-tag>
                     </template>
                 </el-table-column>
-                <el-table-column label="操作" width="180" align="center">
+                <el-table-column label="操作" width="220" align="center">
                     <template slot-scope="scope">
                         <el-button
                             type="text"
@@ -61,14 +61,20 @@
                         >创建证书</el-button>
                         <el-button
                             type="text"
-                            icon="el-icon-edit"
-                            @click="handleEdit(scope.$index, scope.row)"
-                        >编辑</el-button>
-                        <el-button
-                            type="text"
                             icon="el-icon-download"
                             @click="handleDownload(scope.$index, scope.row)"
                         >下载证书</el-button>
+                        <el-button
+                            type="text"
+                            icon="el-icon-folder-delete"
+                            class="red"
+                            @click="handleRevoke(scope.$index, scope.row)"
+                        >注销证书</el-button>
+                        <el-button
+                            type="text"
+                            icon="el-icon-edit"
+                            @click="handleEdit(scope.$index, scope.row)"
+                        >编辑</el-button>
                         <el-button
                             type="text"
                             icon="el-icon-delete"
@@ -208,7 +214,7 @@ export default {
                             user_role: row.user_role,
                         })
                         .then(res => {
-                            if (res.data.Code == 0) {
+                            if (res.data.code == 0) {
                                 this.$message.success('删除成功');
                             } else {
                                 this.$message.success('删除失败');
@@ -255,6 +261,27 @@ export default {
                 this.$message.error("下载失败");
             });
         },
+        handleRevoke(index, row) {
+            this.$confirm('确定要注销吗？', '提示', {
+                type: 'warning'
+            })
+                .then(() => {
+                    this.$axios
+                    .post('api/user/revoke', {
+                        userid: row.user_id,
+                        username: row.user_name,
+                    })
+                    .then(res => {
+                        console.log(res.data);
+                        if (res.data.code == 0) {
+                            this.$message.success(`注销成功，请刷新页面`);
+                        } else {
+                            this.$message.error(`注销失败`);
+                        }
+                    });
+                })
+                .catch(() => {});
+        },
         // 多选操作
         handleSelectionChange(val) {
             this.multipleSelection = val;
@@ -289,7 +316,7 @@ export default {
                     user_phone: this.form.user_phone
                 })
                 .then(res => {
-                    if (res.data.Code == 0) {
+                    if (res.data.code == 0) {
                         this.$message.success(`修改第 ${this.idx + 1} 行成功`);
                     } else {
                         this.$message.error(`修改第 ${this.idx + 1} 行失败`);
@@ -315,7 +342,7 @@ export default {
                     })
                     .then(res => {
                         console.log(res.data);
-                        if (res.data.Code == 0) {
+                        if (res.data.code == 0) {
                             this.$message.success(`创建成功，请刷新页面`);
                         } else {
                             this.$message.error(`创建失败`);
