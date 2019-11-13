@@ -93,10 +93,6 @@ export default {
                             index: 'addpolicy',
                             title: '添加策略'
                         },
-                        {
-                            index: 'editdepartment',
-                            title: '编辑组织结构'
-                        },
                     ]
                 },
             ]

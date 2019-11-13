@@ -60,11 +60,6 @@ export default new Router({
                     meta: { title: '添加策略' }
                 },
                 {
-                    path: '/editdepartment',
-                    component: () => import(/* webpackChunkName: "table" */ '../components/page/User/EditDepartment.vue'),
-                    meta: { title: '编辑组织结构' }
-                },
-                {
                     path: '/tabs',
                     component: () => import(/* webpackChunkName: "tabs" */ '../components/page/Tabs.vue'),
                     meta: { title: 'tab选项卡' }

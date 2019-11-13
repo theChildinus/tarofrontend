@@ -16,14 +16,15 @@
                     @click="delAllSelection"
                 >批量删除</el-button> -->
                 <el-row>
-                    <el-col :span='12'>
+                    <el-col :span='13'>
                         <el-input v-model="search.searchName" placeholder="用户名" class="handle-input mr10"></el-input>
                         <el-button type="primary" icon="el-icon-search" @click="handleSearch">搜索</el-button>
                         <el-button type="primary" icon="el-icon-refresh" @click="handleRefresh">刷新</el-button>
                         <el-button type="danger" icon="el-icon-delete" @click="clearSelection">清空</el-button>
                         <el-button type="primary" icon="el-icon-edit" @click="handleEnumEdit">编辑用户身份</el-button>
+                        <el-button type="primary" icon="el-icon-edit" @click="handleOrgEdit">编辑组织结构</el-button>
                     </el-col>
-                    <el-col :span='6' :offset='6'>
+                    <el-col :span='6' :offset='5'>
                         <el-alert title="请保证用户名唯一，重名用户可添加数字进行区分" type="info" :closable="false" center show-icon></el-alert>
                     </el-col>
                 </el-row>
@@ -138,14 +139,81 @@
                 <el-button type="primary" @click="saveEnumEdit">保 存</el-button>
             </span>
         </el-dialog>
+
+        <!-- 编辑组织结构弹出框 -->
+        <el-dialog title="编辑组织结构" :visible.sync="editOrgVisible" width="30%">
+            <el-tree :data="orgData" show-checkbox node-key="id" default-expand-all :expand-on-click-node="false">
+                <span class="custom-tree-node" slot-scope="{ node, data }">
+                    <span>{{ node.label }}</span>
+                    <span>
+                        <el-button type="text" size="mini" icon="el-icon-plus" @click="appendOrg(data)"></el-button>
+                        <el-button type="text" size="mini" icon="el-icon-edit" @click="editOrg(node, data)"></el-button>
+                        <el-button type="text" size="mini" icon="el-icon-delete" @click="removeOrg(node, data)"></el-button>
+                    </span>
+                </span>
+            </el-tree>
+            <span slot="footer" class="dialog-footer">
+                <el-button @click="editOrgVisible = false">取 消</el-button>
+                <el-button type="primary" @click="saveOrgEdit">保 存</el-button>
+            </span>
+        </el-dialog>
     </div>
 </template>
 
 <script>
+let orgId = 100;
 import { fetchData } from '../../../api/index';
 export default {
     name: 'basetable',
     data() {
+        const mockData = [{
+                id: 1,
+                label: '部门1',
+                children: [
+                    {
+                        id: 4,
+                        label: '二级部门 1-1',
+                        children: [
+                            {
+                                id: 9,
+                                label: '三级部门 1-1-1'
+                            },
+                            {
+                                id: 10,
+                                label: '三级部门 1-1-2'
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                id: 2,
+                label: '部门2',
+                children: [
+                    {
+                        id: 5,
+                        label: '二级部门 2-1'
+                    },
+                    {
+                        id: 6,
+                        label: '二级部门 2-2'
+                    }
+                ]
+            },
+            {
+                id: 3,
+                label: '部门3',
+                children: [
+                    {
+                        id: 7,
+                        label: '二级部门 3-1'
+                    },
+                    {
+                        id: 8,
+                        label: '二级部门 3-2'
+                    }
+                ]
+            }];
         return {
             query: {
                 pageIndex: 1,
@@ -159,10 +227,12 @@ export default {
             enumObj: {},
             enumValueList: [],
             editEnumVisible: false,
+            editOrgVisible: false,
             pageTotal: 0,
             form: {},
             idx: -1,
-            id: -1
+            id: -1,
+            orgData: JSON.parse(JSON.stringify(mockData)),
         };
     },
     created() {
@@ -391,7 +461,58 @@ export default {
                 }
             }
             this.enumValueList = str;
-        }
+        },
+        // 触发组织结构编辑
+        handleOrgEdit() {
+            this.editOrgVisible = true;
+        },
+        // 保存组织结构
+        saveOrgEdit() {
+            this.editOrgVisible = false;
+            this.$axios
+                .post('api/enum/putValue', {
+                    enum_id: this.enumObj.enum_id,
+                    enum_key: this.enumObj.enum_key,
+                    enum_value: this.enumObj.enum_value
+                })
+                .then(res => {
+                    this.$message.success(`保存成功`);
+                });
+        },
+        appendOrg(data) {
+            const newChild = { id: orgId++, label: '未命名部门', children: [] };
+            if (!data.children) {
+                this.$set(data, 'children', []);
+            }
+            data.children.push(newChild);
+        },
+
+        editOrg(data) {
+            console.log(data);
+        },
+
+        removeOrg(node, data) {
+            const parent = node.parent;
+            const children = parent.data.children || parent.data;
+            const index = children.findIndex(d => d.id === data.id);
+            children.splice(index, 1);
+        },
+
+        // renderContent(h, { node, data, store }) {
+        //     return (
+        //         <span class="custom-tree-node">
+        //             <span>{node.label}</span>
+        //             <span>
+        //                 <el-button size="mini" type="text" on-click={() => this.append(data)}>
+        //                     Append
+        //                 </el-button>
+        //                 <el-button size="mini" type="text" on-click={() => this.remove(node, data)}>
+        //                     Delete
+        //                 </el-button>
+        //             </span>
+        //         </span>
+        //     );
+        // }
     }
 };
 </script>
@@ -427,5 +548,13 @@ export default {
     margin: auto;
     width: 40px;
     height: 40px;
+}
+.custom-tree-node {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 14px;
+    padding-right: 8px;
 }
 </style>
