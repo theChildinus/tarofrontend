@@ -32,7 +32,7 @@ export default new Router({
                 {
                     path: '/usertable',
                     component: () => import(/* webpackChunkName: "table" */ '../components/page/User/UserTable.vue'),
-                    meta: { title: '身份管理' }
+                    meta: { title: '角色管理' }
                 },
                 {
                     path: '/adduser',

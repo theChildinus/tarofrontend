@@ -21,7 +21,7 @@
                         <el-button type="primary" icon="el-icon-search" @click="handleSearch">搜索</el-button>
                         <el-button type="primary" icon="el-icon-refresh" @click="handleRefresh">刷新</el-button>
                         <el-button type="danger" icon="el-icon-delete" @click="clearSelection">清空</el-button>
-                        <el-button type="primary" icon="el-icon-edit" @click="handleEnumEdit">编辑用户身份</el-button>
+                        <el-button type="primary" icon="el-icon-edit" @click="handleEnumEdit">编辑用户角色</el-button>
                         <el-button type="primary" icon="el-icon-edit" @click="handleOrgEdit">编辑组织结构</el-button>
                     </el-col>
                     <el-col :span='6' :offset='5'>
@@ -40,7 +40,7 @@
                 <el-table-column type="selection" width="55" align="center"></el-table-column>
                 <el-table-column prop="user_id" label="ID" width="55" align="center"></el-table-column>
                 <el-table-column prop="user_name" label="用户名"></el-table-column>
-                <el-table-column prop="user_role" label="用户身份"></el-table-column>
+                <el-table-column prop="user_role" label="用户角色"></el-table-column>
                 <el-table-column prop="user_department" label="部门"></el-table-column>
                 <el-table-column prop="user_address" label="地址"></el-table-column>
                 <el-table-column prop="user_email" label="电子邮箱"></el-table-column>
@@ -103,17 +103,18 @@
                 <el-form-item label="用户名">
                     <el-input v-model="form.user_name"></el-input>
                 </el-form-item>
-                <el-form-item label="身份">
+                <el-form-item label="角色">
                     <el-select
                         v-model="form.user_role"
-                        placeholder="用户身份"
+                        placeholder="用户角色"
                         class="handle-select mr10"
                     >
                         <el-option v-for="item in enumValueList" :key="item" :label="item" :value="item"></el-option>
                     </el-select>
                     </el-form-item>
                     <el-form-item label="部门">
-                        <el-input v-model="form.user_department"></el-input>
+                        <!-- <el-input v-model="form.user_department"></el-input> -->
+                        <el-cascader v-model="form.user_department" :options="orgOpts" :props="{ checkStrictly: true }" clearable></el-cascader>
                     </el-form-item>
                     <el-form-item label="地址">
                         <el-input v-model="form.user_address"></el-input>
@@ -131,8 +132,8 @@
             </span>
         </el-dialog>
 
-        <!-- 编辑用户身份弹出框 -->
-        <el-dialog title="编辑用户身份（以 ## 分隔）" :visible.sync="editEnumVisible" width="30%">
+        <!-- 编辑用户角色弹出框 -->
+        <el-dialog title="编辑用户角色（以 ## 分隔）" :visible.sync="editEnumVisible" width="30%">
             <el-input type="textarea" autosize placeholder="请输入内容" v-model="enumObj.enum_value"></el-input>
             <span slot="footer" class="dialog-footer">
                 <el-button @click="editEnumVisible = false">取 消</el-button>
@@ -142,9 +143,12 @@
 
         <!-- 编辑组织结构弹出框 -->
         <el-dialog title="编辑组织结构" :visible.sync="editOrgVisible" width="30%">
-            <el-tree :data="orgData" show-checkbox node-key="id" default-expand-all :expand-on-click-node="false">
+            <el-tree :data="orgData" node-key="id" default-expand-all :expand-on-click-node="false">
                 <span class="custom-tree-node" slot-scope="{ node, data }">
-                    <span>{{ node.label }}</span>
+                    <span v-if="node.data.isEdit==true">
+                        <el-input size="mini" v-model="node.data.label" @blur="saveOrgNode(node)"></el-input>
+                    </span>
+                    <span v-else>{{ node.data.label }}</span>
                     <span>
                         <el-button type="text" size="mini" icon="el-icon-plus" @click="appendOrg(data)"></el-button>
                         <el-button type="text" size="mini" icon="el-icon-edit" @click="editOrg(node, data)"></el-button>
@@ -153,6 +157,7 @@
                 </span>
             </el-tree>
             <span slot="footer" class="dialog-footer">
+                <el-button @click="handleAddTop">添加根节点</el-button>
                 <el-button @click="editOrgVisible = false">取 消</el-button>
                 <el-button type="primary" @click="saveOrgEdit">保 存</el-button>
             </span>
@@ -161,59 +166,10 @@
 </template>
 
 <script>
-let orgId = 100;
 import { fetchData } from '../../../api/index';
 export default {
     name: 'basetable',
     data() {
-        const mockData = [{
-                id: 1,
-                label: '部门1',
-                children: [
-                    {
-                        id: 4,
-                        label: '二级部门 1-1',
-                        children: [
-                            {
-                                id: 9,
-                                label: '三级部门 1-1-1'
-                            },
-                            {
-                                id: 10,
-                                label: '三级部门 1-1-2'
-                            }
-                        ]
-                    }
-                ]
-            },
-            {
-                id: 2,
-                label: '部门2',
-                children: [
-                    {
-                        id: 5,
-                        label: '二级部门 2-1'
-                    },
-                    {
-                        id: 6,
-                        label: '二级部门 2-2'
-                    }
-                ]
-            },
-            {
-                id: 3,
-                label: '部门3',
-                children: [
-                    {
-                        id: 7,
-                        label: '二级部门 3-1'
-                    },
-                    {
-                        id: 8,
-                        label: '二级部门 3-2'
-                    }
-                ]
-            }];
         return {
             query: {
                 pageIndex: 1,
@@ -232,12 +188,16 @@ export default {
             form: {},
             idx: -1,
             id: -1,
-            orgData: JSON.parse(JSON.stringify(mockData)),
+            orgId: -1,
+            orgObj: {},
+            orgData: [],
+            orgOpts: [],
         };
     },
     created() {
         this.getData();
         this.getEnumData();
+        this.getOrgData();
     },
     methods: {
         // 获取 easy-mock 的模拟数据
@@ -465,54 +425,69 @@ export default {
         // 触发组织结构编辑
         handleOrgEdit() {
             this.editOrgVisible = true;
+            this.getOrgData();
+        },
+        // 从后台获取组织结构信息
+        getOrgData() {
+            this.$axios
+                .post('api/enum/getValue', {
+                    enum_key: 'user_organization'
+                })
+                .then(res => {
+                    //console.log('resdata: ', res.data);
+                    this.orgObj = res.data;
+                    this.orgData = JSON.parse(this.orgObj.enum_value);
+                    console.log("orgData: ", this.orgData);
+                    this.orgId = this.orgData[0].orgId;
+                    this.orgData = this.orgData.slice(1);
+                    this.orgOpts = this.orgData;
+                });
         },
         // 保存组织结构
         saveOrgEdit() {
             this.editOrgVisible = false;
+            var orgIdObj = {"orgId":this.orgId};
+            this.orgData.unshift(orgIdObj);
             this.$axios
                 .post('api/enum/putValue', {
-                    enum_id: this.enumObj.enum_id,
-                    enum_key: this.enumObj.enum_key,
-                    enum_value: this.enumObj.enum_value
+                    enum_id: this.orgObj.enum_id,
+                    enum_key: this.orgObj.enum_key,
+                    enum_value: JSON.stringify(this.orgData),
                 })
                 .then(res => {
                     this.$message.success(`保存成功`);
                 });
         },
         appendOrg(data) {
-            const newChild = { id: orgId++, label: '未命名部门', children: [] };
+            const newChild = { id: this.orgId++, label: '未命名部门', value: '未命名部门', isEdit: true, children: [] };
             if (!data.children) {
                 this.$set(data, 'children', []);
             }
             data.children.push(newChild);
         },
 
-        editOrg(data) {
-            console.log(data);
+        editOrg(node, data) {
+            node.data.isEdit = true;
         },
-
+        saveOrgNode(node) {
+            node.data.value = node.data.label;
+            node.data.isEdit = false;
+        },
         removeOrg(node, data) {
             const parent = node.parent;
             const children = parent.data.children || parent.data;
             const index = children.findIndex(d => d.id === data.id);
             children.splice(index, 1);
         },
-
-        // renderContent(h, { node, data, store }) {
-        //     return (
-        //         <span class="custom-tree-node">
-        //             <span>{node.label}</span>
-        //             <span>
-        //                 <el-button size="mini" type="text" on-click={() => this.append(data)}>
-        //                     Append
-        //                 </el-button>
-        //                 <el-button size="mini" type="text" on-click={() => this.remove(node, data)}>
-        //                     Delete
-        //                 </el-button>
-        //             </span>
-        //         </span>
-        //     );
-        // }
+        handleAddTop() {
+            this.orgData.push({
+            id: ++this.orgId,
+            label: '顶级部门',
+            value: '顶级部门',
+            isEdit: true,
+            children: []
+            })
+        },
     }
 };
 </script>

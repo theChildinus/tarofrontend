@@ -64,7 +64,7 @@ export default {
                 {
                     icon: 'el-icon-user',
                     index: 'usertable',
-                    title: '身份管理'
+                    title: '角色管理'
                 },
                 {
                     icon: 'el-icon-collection',
