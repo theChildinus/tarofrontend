@@ -16,7 +16,14 @@
                     @click="delAllSelection"
                 >批量删除</el-button> -->
                 <el-row>
-                    <el-col :span='13'>
+                    <el-col :span='15'>
+                        <el-select
+                            v-model="search.searchType"
+                            placeholder="用户角色"
+                            class="handle-select mr10"
+                        >
+                            <el-option v-for="item in enumValueList" :key="item" :label="item" :value="item"></el-option>
+                        </el-select>
                         <el-input v-model="search.searchName" placeholder="用户名" class="handle-input mr10"></el-input>
                         <el-button type="primary" icon="el-icon-search" @click="handleSearch">搜索</el-button>
                         <el-button type="primary" icon="el-icon-refresh" @click="handleRefresh">刷新</el-button>
@@ -24,7 +31,7 @@
                         <el-button type="primary" icon="el-icon-edit" @click="handleEnumEdit">编辑用户角色</el-button>
                         <el-button type="primary" icon="el-icon-edit" @click="handleOrgEdit">编辑组织结构</el-button>
                     </el-col>
-                    <el-col :span='6' :offset='5'>
+                    <el-col :span='6' :offset='3'>
                         <el-alert title="请保证用户名唯一，重名用户可添加数字进行区分" type="info" :closable="false" center show-icon></el-alert>
                     </el-col>
                 </el-row>
@@ -210,6 +217,7 @@ export default {
                 .post('api/user/list', {
                     page_index: this.query.pageIndex,
                     page_size: this.query.pageSize,
+                    search_type: this.search.searchType == null ? '' : this.search.searchType,
                     search_name: this.search.searchName == null ? '' : this.search.searchName
                 })
                 .then(res => {
