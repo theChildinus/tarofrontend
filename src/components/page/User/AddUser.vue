@@ -20,7 +20,8 @@
                         </el-select>
                     </el-form-item>
                     <el-form-item label="部门">
-                        <el-input v-model="form.user_department"></el-input>
+                        <el-cascader v-model="form.user_department" :options="orgOpts" 
+                        :props="{ checkStrictly: true }" clearable style="width: 100%;"></el-cascader>
                     </el-form-item>
                     <el-form-item label="地址">
                         <el-input v-model="form.user_address"></el-input>
@@ -51,15 +52,27 @@ export default {
                 name: '',
                 type: ''
             },
-            enumValueList: []
+            enumValueList: [],
+            orgData: [],
+            orgOpts: [],
         };
     },
     created() {
         this.getEnumData();
+        this.getOrgData();
     },
     methods: {
         onSubmit() {
             console.log("onSubmit")
+            var departmentStr = "";
+            var array = this.form.user_department;
+            for (var i = 0; i < array.length; i++) {
+                departmentStr += array[i];
+                if (i != array.length - 1) {
+                    departmentStr += "/";
+                }
+            }
+            this.form.user_department = departmentStr;
             this.$axios.post('api/user/create', {
                 user_name: this.form.user_name,
                 user_role: this.form.user_role,
@@ -96,7 +109,23 @@ export default {
                 }
             }
             this.enumValueList = str;
-        }
+        },
+        // 从后台获取组织结构信息
+        getOrgData() {
+            this.$axios
+                .post('api/enum/getValue', {
+                    enum_key: 'user_organization'
+                })
+                .then(res => {
+                    //console.log('resdata: ', res.data);
+                    this.orgObj = res.data;
+                    this.orgData = JSON.parse(this.orgObj.enum_value);
+                    console.log("orgData: ", this.orgData);
+                    this.orgId = this.orgData[0].orgId;
+                    this.orgData = this.orgData.slice(1);
+                    this.orgOpts = this.orgData;
+                });
+        },
     }
 };
 </script>

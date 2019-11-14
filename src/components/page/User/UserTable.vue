@@ -113,8 +113,8 @@
                     </el-select>
                     </el-form-item>
                     <el-form-item label="部门">
-                        <!-- <el-input v-model="form.user_department"></el-input> -->
-                        <el-cascader v-model="form.user_department" :options="orgOpts" :props="{ checkStrictly: true }" clearable></el-cascader>
+                        <el-cascader v-model="form.user_department" :options="orgOpts" 
+                        :props="{ checkStrictly: true }" clearable style="width: 100%;"></el-cascader>
                     </el-form-item>
                     <el-form-item label="地址">
                         <el-input v-model="form.user_address"></el-input>
@@ -335,6 +335,15 @@ export default {
         // 保存编辑
         saveEdit() {
             this.editVisible = false;
+            var departmentStr = "";
+            var array = this.form.user_department;
+            for (var i = 0; i < array.length; i++) {
+                departmentStr += array[i];
+                if (i != array.length - 1) {
+                    departmentStr += "/";
+                }
+            }
+            this.form.user_department = departmentStr;
             this.$axios
                 .post('api/user/update', {
                     user_id: this.form.user_id,
@@ -459,7 +468,7 @@ export default {
                 });
         },
         appendOrg(data) {
-            const newChild = { id: this.orgId++, label: '未命名部门', value: '未命名部门', isEdit: true, children: [] };
+            const newChild = { id: this.orgId++, label: '未命名部门', value: '未命名部门', isEdit: true,};
             if (!data.children) {
                 this.$set(data, 'children', []);
             }
