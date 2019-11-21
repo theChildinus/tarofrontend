@@ -77,6 +77,11 @@ export default {
                     title: '权限管理'
                 },
                 {
+                    icon: 'el-icon-connection',
+                    index: 'identitytable',
+                    title: 'Fabric身份管理'
+                },
+                {
                     icon: 'el-icon-plus',
                     index: '3',
                     title: '数据管理',
@@ -92,6 +97,10 @@ export default {
                         {
                             index: 'addpolicy',
                             title: '添加策略'
+                        },
+                        {
+                            index: 'addidentity',
+                            title: '添加Fabric身份'
                         },
                     ]
                 },

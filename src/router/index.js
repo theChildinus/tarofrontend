@@ -60,6 +60,16 @@ export default new Router({
                     meta: { title: '添加策略' }
                 },
                 {
+                    path: '/identitytable',
+                    component: () => import(/* webpackChunkName: "table" */ '../components/page/FabricIdentity/IdentityTable.vue'),
+                    meta: { title: 'Fabric身份管理' }
+                },
+                {
+                    path: '/addidentity',
+                    component: () => import(/* webpackChunkName: "table" */ '../components/page/FabricIdentity/AddIdentity.vue'),
+                    meta: { title: '添加Fabric身份' }
+                },
+                {
                     path: '/tabs',
                     component: () => import(/* webpackChunkName: "tabs" */ '../components/page/Tabs.vue'),
                     meta: { title: 'tab选项卡' }
