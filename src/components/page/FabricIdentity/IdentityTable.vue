@@ -15,17 +15,24 @@
                     class="handle-del mr10"
                     @click="delAllSelection"
                 >批量删除</el-button> -->
-                <el-select
-                    v-model="search.searchType"
-                    placeholder="身份类型"
-                    class="handle-select mr10"
-                >
-                    <el-option v-for="item in identityTypeList" :key="item" :label="item" :value="item"></el-option>
-                </el-select>
-                <el-input v-model="search.searchName" placeholder="身份名称" class="handle-input mr10"></el-input>
-                <el-button type="primary" icon="el-icon-search" @click="handleSearch">搜索</el-button>
-                <el-button type="primary" icon="el-icon-refresh" @click="handleRefresh">刷新</el-button>
-                <el-button type="danger"  icon="el-icon-delete" @click="clearSelection">清空</el-button>
+                <el-row>
+                    <el-col :span='15'>
+                        <el-select
+                            v-model="search.searchType"
+                            placeholder="身份类型"
+                            class="handle-select mr10"
+                        >
+                            <el-option v-for="item in identityTypeList" :key="item" :label="item" :value="item"></el-option>
+                        </el-select>
+                        <el-input v-model="search.searchName" placeholder="身份名称" class="handle-input mr10"></el-input>
+                        <el-button type="primary" icon="el-icon-search" @click="handleSearch">搜索</el-button>
+                        <el-button type="primary" icon="el-icon-refresh" @click="handleRefresh">刷新</el-button>
+                        <el-button type="danger"  icon="el-icon-delete" @click="clearSelection">清空</el-button>
+                    </el-col>
+                    <el-col :span='6' :offset='3'>
+                        <el-alert title="请保证身份名唯一，重名身份可添加数字进行区分" type="info" :closable="false" center show-icon></el-alert>
+                    </el-col>
+                </el-row>
             </div>
             <el-table
                 :data="tableData"
@@ -245,14 +252,76 @@ export default {
             this.$set(this.query, 'pageIndex', val);
             this.getData();
         },
-        handleRegister() {
-
+        handleRegister(index, row) {
+            this.$confirm('确定要注册 ' + row.identity_name + ' 吗？', '提示', {
+                type: 'warning'
+            })
+                .then(() => {
+                    this.$axios
+                    .post('api/identity/register', {
+                        id: row.identity_id,
+                        name: row.identity_name,
+                        secret: row.identity_secret,
+                        type: row.identity_type,
+                        affiliation: row.identity_affiliation,
+                        attrs: row.identity_attrs,
+                    })
+                    .then(res => {
+                        console.log(res.data);
+                        if (res.data.code == 0) {
+                            this.$message.success('注册 ' + row.identity_name + ' 成功，请刷新页面');
+                        } else {
+                            this.$message.error('注册 ' + row.identity_name + ' 失败或已注册');
+                        }
+                    });
+                })
+                .catch(() => {}); 
         },
-        handleEnroll() {
-
+        handleEnroll(index, row) {
+            this.$confirm('确定要登录 ' + row.identity_name + ' 吗？', '提示', {
+                type: 'warning'
+            })
+            .then(() => {
+                this.$axios
+                .post('api/identity/enroll', {
+                    id: row.identity_id,
+                    name: row.identity_name,
+                    secret: row.identity_secret,
+                    attrs: row.identity_attrs,
+                    type: row.identity_type,
+                })
+                .then(res => {
+                    console.log(res.data);
+                    if (res.data.code == 0) {
+                        this.$message.success('登录 ' + row.identity_name + ' 成功，请刷新页面');
+                    } else {
+                        this.$message.error('登录 ' + row.identity_name + ' 失败或已登录');
+                    }
+                });
+            })
+            .catch(() => {});
         },
-        handleRevoke() {
-
+        handleRevoke(index, row) {
+            this.$confirm('确定要注销 ' + row.identity_name + ' 吗？', '提示', {
+                type: 'warning'
+            })
+            .then(() => {
+                this.$axios
+                .post('api/identity/revoke', {
+                    id: row.identity_id,
+                    name: row.identity_name,
+                    type: row.identity_type,
+                })
+                .then(res => {
+                    console.log(res.data);
+                    if (res.data.code == 0) {
+                        this.$message.success('注销 ' + row.identity_name + ' 成功，请刷新页面');
+                    } else {
+                        this.$message.error('注销 ' + row.identity_name + ' 失败或已注销');
+                    }
+                });
+            })
+            .catch(() => {});
         },
     }
 };

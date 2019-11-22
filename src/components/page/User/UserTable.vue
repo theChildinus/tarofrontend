@@ -266,8 +266,8 @@ export default {
                 method: 'post',
                 url: 'api/user/downloadCert',
                 data: {
-                    userid: row.user_id,
-                    username: row.user_name
+                    id: row.user_id,
+                    name: row.user_name
                 },
             })
             .then(res => {
@@ -290,31 +290,31 @@ export default {
                         // IE10+下载
                         navigator.msSaveBlob(blob, fileName);
                     }
-                    this.$message.success(`下载成功`);
+                    this.$message.success('下载 ' + row.user_name + ' 的证书成功');
                 } else {
-                    this.$message.error("下载失败");
+                    this.$message.error('下载 ' + row.user_name + ' 的证书失败');
                 }
             })
             .catch(() => {
-                this.$message.error("下载失败");
+                this.$message.error('下载 ' + row.user_name + ' 的证书失败');
             });
         },
         handleRevoke(index, row) {
-            this.$confirm('确定要注销吗？', '提示', {
+            this.$confirm('确定要注销 ' + row.user_name + ' 的证书吗？', '提示', {
                 type: 'warning'
             })
                 .then(() => {
                     this.$axios
                     .post('api/user/revoke', {
-                        userid: row.user_id,
-                        username: row.user_name,
+                        id: row.user_id,
+                        name: row.user_name,
                     })
                     .then(res => {
                         console.log(res.data);
                         if (res.data.code == 0) {
-                            this.$message.success(`注销成功，请刷新页面`);
+                            this.$message.success('注销 ' + row.user_name + ' 的证书成功，请刷新页面');
                         } else {
-                            this.$message.error(`注销失败`);
+                            this.$message.error('注销 ' + row.user_name + ' 的证书失败');
                         }
                     });
                 })
@@ -378,21 +378,21 @@ export default {
             this.getData();
         },
         handleRegister(index, row) {
-            this.$confirm('确定要创建吗？', '提示', {
+            this.$confirm('确定要创建 ' + row.user_name + ' 的证书吗？', '提示', {
                 type: 'warning'
             })
                 .then(() => {
                     this.$axios
                     .post('api/user/register', {
-                        userid: row.user_id,
-                        username: row.user_name,
+                        id: row.user_id,
+                        name: row.user_name,
                     })
                     .then(res => {
                         console.log(res.data);
                         if (res.data.code == 0) {
-                            this.$message.success(`创建成功，请刷新页面`);
+                            this.$message.success('创建 ' + row.user_name + ' 的证书成功，请刷新页面');
                         } else {
-                            this.$message.error(`创建失败`);
+                            this.$message.error('创建 ' + row.user_name + ' 的证书失败');
                         }
                     });
                 })
