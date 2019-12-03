@@ -31,9 +31,10 @@
             >
                 <el-table-column type="selection" width="55" align="center"></el-table-column>
                 <el-table-column prop="policy_id" label="ID" width="55" align="center"></el-table-column>
-                <el-table-column prop="policy_sub" label="主体"></el-table-column>
-                <el-table-column prop="policy_obj" label="资源"></el-table-column>
-                <el-table-column prop="policy_act" label="动作"></el-table-column>
+                <el-table-column prop="policy_sub" label="策略主体"></el-table-column>
+                <el-table-column prop="policy_obj" label="策略资源"></el-table-column>
+                <el-table-column prop="policy_act" label="策略动作"></el-table-column>
+                <el-table-column prop="policy_type" label="策略类型"></el-table-column>
                 <el-table-column prop="policy_ctime" label="添加时间"></el-table-column>
                 <el-table-column label="操作" width="180" align="center">
                     <template slot-scope="scope">
@@ -66,20 +67,24 @@
         <!-- 编辑弹出框 -->
         <el-dialog title="编辑" :visible.sync="editVisible" width="30%">
             <el-form ref="form" :model="form" label-width="70px">
-                <el-form-item label="主体">
+                <el-form-item label="策略主体">
                     <el-input v-model="form.policy_sub" :disabled="true"></el-input>
                 </el-form-item>
-                <el-form-item label="资源">
+                <el-form-item label="策略资源">
                     <el-input v-model="form.policy_obj"></el-input>
                 </el-form-item>
-                <el-form-item label="动作">
+                <el-form-item label="策略动作">
                     <el-select
                         v-model="form.policy_act"
-                        placeholder="资源类型"
+                        placeholder="动作类型"
                         class="handle-select mr10"
                     >
                         <el-option v-for="item in enumValueList" :key="item" :label="item" :value="item"></el-option>
                     </el-select>
+                </el-form-item>
+                <el-form-item label="策略类型"> 
+                    <el-radio disabled v-model="form.policy_type" label="IOT策略">IOT策略</el-radio>
+                    <el-radio disabled v-model="form.policy_type" label="Fabric策略">Fabric策略</el-radio>
                 </el-form-item>
             </el-form>
             <span slot="footer" class="dialog-footer">
