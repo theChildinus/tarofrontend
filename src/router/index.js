@@ -32,12 +32,12 @@ export default new Router({
                 {
                     path: '/usertable',
                     component: () => import(/* webpackChunkName: "table" */ '../components/page/User/UserTable.vue'),
-                    meta: { title: '角色管理' }
+                    meta: { title: '物联网服务系统用户管理' }
                 },
                 {
                     path: '/adduser',
                     component: () => import(/* webpackChunkName: "table" */ '../components/page/User/AddUser.vue'),
-                    meta: { title: '添加用户' }
+                    meta: { title: '添加物联网服务系统用户' }
                 },
                 {
                     path: '/resourcetable',
@@ -52,7 +52,7 @@ export default new Router({
                 {
                     path: '/policytable',
                     component: () => import(/* webpackChunkName: "table" */ '../components/page/Policy/PolicyTable.vue'),
-                    meta: { title: '权限管理' }
+                    meta: { title: '策略管理' }
                 },
                 {
                     path: '/addpolicy',
@@ -62,12 +62,12 @@ export default new Router({
                 {
                     path: '/identitytable',
                     component: () => import(/* webpackChunkName: "table" */ '../components/page/FabricIdentity/IdentityTable.vue'),
-                    meta: { title: 'Fabric身份管理' }
+                    meta: { title: '区块链参与者管理' }
                 },
                 {
                     path: '/addidentity',
                     component: () => import(/* webpackChunkName: "table" */ '../components/page/FabricIdentity/AddIdentity.vue'),
-                    meta: { title: '添加Fabric身份' }
+                    meta: { title: '添加区块链参与者' }
                 },
                 {
                     path: '/tabs',

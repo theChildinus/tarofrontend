@@ -3,7 +3,7 @@
         <div class="crumbs">
             <el-breadcrumb separator="/">
                 <el-breadcrumb-item>
-                    <i class="el-icon-lx-cascades"></i> Fabric 身份表格
+                    <i class="el-icon-lx-cascades"></i> 区块链参与者表格
                 </el-breadcrumb-item>
             </el-breadcrumb>
         </div>
@@ -58,7 +58,7 @@
                             (scope.row.identity_status==2?'success':''))"
                         >{{scope.row.identity_status==0?"未注册":
                         (scope.row.identity_status == 1?"已注册":
-                        (scope.row.identity_status==2?"已登录":""))}}</el-tag>
+                        (scope.row.identity_status==2?"已登记":""))}}</el-tag>
                     </template>
                 </el-table-column>
                 <el-table-column label="操作" width="250" align="center">

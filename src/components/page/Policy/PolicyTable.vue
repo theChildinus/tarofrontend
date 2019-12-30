@@ -83,8 +83,8 @@
                     </el-select>
                 </el-form-item>
                 <el-form-item label="策略类型"> 
-                    <el-radio disabled v-model="form.policy_type" label="IOT策略">IOT策略</el-radio>
-                    <el-radio disabled v-model="form.policy_type" label="Fabric策略">Fabric策略</el-radio>
+                    <el-radio disabled v-model="form.policy_type" label="IOT策略">物联网服务策略</el-radio>
+                    <el-radio disabled v-model="form.policy_type" label="Fabric策略">区块链策略</el-radio>
                 </el-form-item>
             </el-form>
             <span slot="footer" class="dialog-footer">

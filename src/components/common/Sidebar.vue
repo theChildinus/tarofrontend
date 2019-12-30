@@ -64,7 +64,12 @@ export default {
                 {
                     icon: 'el-icon-user',
                     index: 'usertable',
-                    title: '角色管理'
+                    title: '物联网服务系统用户管理'
+                },
+                {
+                    icon: 'el-icon-connection',
+                    index: 'identitytable',
+                    title: '区块链参与者管理'
                 },
                 {
                     icon: 'el-icon-collection',
@@ -74,12 +79,7 @@ export default {
                 {
                     icon: 'el-icon-key',
                     index: 'policytable',
-                    title: '权限管理'
-                },
-                {
-                    icon: 'el-icon-connection',
-                    index: 'identitytable',
-                    title: 'Fabric身份管理'
+                    title: '策略管理'
                 },
                 {
                     icon: 'el-icon-plus',
@@ -88,7 +88,11 @@ export default {
                     subs: [
                         {
                             index: 'adduser',
-                            title: '添加用户'
+                            title: '添加物联网服务系统用户'
+                        },
+                        {
+                            index: 'addidentity',
+                            title: '添加区块链参与者'
                         },
                         {
                             index: 'addresource',
@@ -97,10 +101,6 @@ export default {
                         {
                             index: 'addpolicy',
                             title: '添加策略'
-                        },
-                        {
-                            index: 'addidentity',
-                            title: '添加Fabric身份'
                         },
                     ]
                 },
