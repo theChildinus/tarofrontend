@@ -35,11 +35,6 @@ export default new Router({
                     meta: { title: '物联网服务系统用户管理' }
                 },
                 {
-                    path: '/adduser',
-                    component: () => import(/* webpackChunkName: "table" */ '../components/page/User/AddUser.vue'),
-                    meta: { title: '添加物联网服务系统用户' }
-                },
-                {
                     path: '/resourcetable',
                     component: () => import(/* webpackChunkName: "table" */ '../components/page/Resource/ResourceTable.vue'),
                     meta: { title: '资源管理' }

@@ -16,7 +16,7 @@
                     @click="delAllSelection"
                 >批量删除</el-button> -->
                 <el-row>
-                    <el-col :span='15'>
+                    <el-col :span='20'>
                         <el-select
                             v-model="search.searchType"
                             placeholder="用户角色"
@@ -30,8 +30,9 @@
                         <el-button type="danger" icon="el-icon-delete" @click="clearSelection">清空</el-button>
                         <el-button type="primary" icon="el-icon-edit" @click="handleEnumEdit">编辑用户角色</el-button>
                         <el-button type="primary" icon="el-icon-edit" @click="handleOrgEdit">编辑组织结构</el-button>
+                        <el-button type="primary" icon="el-icon-plus" @click="handleAddUser">添加用户</el-button>
                     </el-col>
-                    <el-col :span='6' :offset='3'>
+                    <el-col :span='4' :offset='0'>
                         <el-alert title="请保证用户名唯一，重名用户可添加数字进行区分" type="info" :closable="false" center show-icon></el-alert>
                     </el-col>
                 </el-row>
@@ -52,6 +53,7 @@
                 <el-table-column prop="user_address" label="地址"></el-table-column>
                 <el-table-column prop="user_email" label="电子邮箱"></el-table-column>
                 <el-table-column prop="user_phone" label="联系方式"></el-table-column>
+                <el-table-column prop="user_path" label="安全存储设备路径"></el-table-column>
                 <el-table-column label="证书状态" align="center">
                     <template slot-scope="scope">
                         <el-tag
@@ -132,6 +134,9 @@
                     <el-form-item label="联系电话">
                         <el-input v-model="form.user_phone"></el-input>
                     </el-form-item>
+                    <el-form-item label="安全存储设备路径">
+                        <el-input v-model="form.user_path"></el-input>
+                    </el-form-item>
             </el-form>
             <span slot="footer" class="dialog-footer">
                 <el-button @click="editVisible = false">取 消</el-button>
@@ -169,6 +174,40 @@
                 <el-button type="primary" @click="saveOrgEdit">保 存</el-button>
             </span>
         </el-dialog>
+
+         <!-- 添加用户身份信息弹出框 -->
+        <el-dialog title="添加用户身份信息" :visible.sync="addUserVisible" width="30%">
+            <el-form ref="form" :model="form" label-width="80px">
+                <el-form-item label="用户名">
+                    <el-input v-model="form.user_name"></el-input>
+                </el-form-item>
+                <el-form-item label="角色">
+                    <el-select v-model="form.user_role" placeholder="用户角色" class="handle-select mr10">
+                        <el-option v-for="item in enumValueList" :key="item" :label="item" :value="item"></el-option>
+                    </el-select>
+                </el-form-item>
+                <el-form-item label="部门">
+                    <el-cascader v-model="form.user_department" :options="orgOpts" 
+                    :props="{ checkStrictly: true }" clearable style="width: 100%;"></el-cascader>
+                </el-form-item>
+                <el-form-item label="地址">
+                    <el-input v-model="form.user_address"></el-input>
+                </el-form-item>
+                <el-form-item label="电子邮箱">
+                    <el-input v-model="form.user_email"></el-input>
+                </el-form-item>
+                <el-form-item label="联系电话">
+                    <el-input v-model="form.user_phone"></el-input>
+                </el-form-item>
+                <el-form-item label="安全存储设备路径">
+                    <el-input v-model="form.user_path"></el-input>
+                </el-form-item>
+                <el-form-item>
+                    <el-button type="primary" @click="onSubmit">表单提交</el-button>
+                    <el-button type="danger" @click="onClear">清空</el-button>
+                </el-form-item>
+            </el-form>
+        </el-dialog>
     </div>
 </template>
 
@@ -191,6 +230,7 @@ export default {
             enumValueList: [],
             editEnumVisible: false,
             editOrgVisible: false,
+            addUserVisible: false,
             pageTotal: 0,
             form: {},
             idx: -1,
@@ -360,7 +400,8 @@ export default {
                     user_department: this.form.user_department,
                     user_address: this.form.user_address,
                     user_email: this.form.user_email,
-                    user_phone: this.form.user_phone
+                    user_phone: this.form.user_phone,
+                    user_path: this.form.user_path,
                 })
                 .then(res => {
                     if (res.data.code == 0) {
@@ -444,6 +485,9 @@ export default {
             this.editOrgVisible = true;
             this.getOrgData();
         },
+        handleAddUser() {
+            this.addUserVisible = true;
+        },
         // 从后台获取组织结构信息
         getOrgData() {
             this.$axios
@@ -504,6 +548,34 @@ export default {
             isEdit: true,
             children: []
             })
+        },
+        onSubmit() {
+            console.log("onSubmit")
+            var departmentStr = "";
+            var array = this.form.user_department;
+            for (var i = 0; i < array.length; i++) {
+                departmentStr += array[i];
+                if (i != array.length - 1) {
+                    departmentStr += "/";
+                }
+            }
+            this.form.user_department = departmentStr;
+            this.$axios.post('api/user/create', {
+                user_name: this.form.user_name,
+                user_role: this.form.user_role,
+                user_department: this.form.user_department,
+                user_address: this.form.user_address,
+                user_email: this.form.user_email,
+                user_phone: this.form.user_phone,
+                user_path: this.form.user_path,
+            })
+            .then( (res) => {
+                this.$message.success('提交成功！');
+                this.addUserVisible = false;    
+            })
+        },
+        onClear() {
+            this.form = {};
         },
     }
 };
