@@ -60,11 +60,6 @@ export default new Router({
                     meta: { title: '区块链参与者管理' }
                 },
                 {
-                    path: '/addidentity',
-                    component: () => import(/* webpackChunkName: "table" */ '../components/page/FabricIdentity/AddIdentity.vue'),
-                    meta: { title: '添加区块链参与者' }
-                },
-                {
                     path: '/tabs',
                     component: () => import(/* webpackChunkName: "tabs" */ '../components/page/Tabs.vue'),
                     meta: { title: 'tab选项卡' }

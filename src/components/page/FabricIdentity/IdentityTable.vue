@@ -16,7 +16,7 @@
                     @click="delAllSelection"
                 >批量删除</el-button> -->
                 <el-row>
-                    <el-col :span='15'>
+                    <el-col :span='16'>
                         <el-select
                             v-model="search.searchType"
                             placeholder="身份类型"
@@ -28,8 +28,9 @@
                         <el-button type="primary" icon="el-icon-search" @click="handleSearch">搜索</el-button>
                         <el-button type="primary" icon="el-icon-refresh" @click="handleRefresh">刷新</el-button>
                         <el-button type="danger"  icon="el-icon-delete" @click="clearSelection">清空</el-button>
+                        <el-button type="primary" icon="el-icon-plus" @click="handleAddIdentity">添加参与者</el-button>
                     </el-col>
-                    <el-col :span='6' :offset='3'>
+                    <el-col :span='5' :offset='3'>
                         <el-alert title="请保证身份名唯一，重名身份可添加数字进行区分" type="info" :closable="false" center show-icon></el-alert>
                     </el-col>
                 </el-row>
@@ -44,11 +45,11 @@
             >
                 <el-table-column type="selection" width="55" align="center"></el-table-column>
                 <el-table-column prop="identity_id" label="ID" width="55" align="center"></el-table-column>
-                <el-table-column prop="identity_name" label="身份名" width="150"></el-table-column>
-                <el-table-column prop="identity_secret" label="身份密码" width="150"></el-table-column>
-                <el-table-column prop="identity_type" label="身份类型" width="100"></el-table-column>
-                <el-table-column prop="identity_affiliation" label="身份从属" width="100"></el-table-column>
-                <el-table-column prop="identity_attrs" label="身份属性"></el-table-column>
+                <el-table-column prop="identity_name" label="参与者名" width="150"></el-table-column>
+                <el-table-column prop="identity_type" label="参与者类型" width="100"></el-table-column>
+                <el-table-column prop="identity_affiliation" label="参与者从属" width="100"></el-table-column>
+                <el-table-column prop="identity_attrs" label="参与者属性"></el-table-column>
+                <el-table-column prop="identity_ip" label="参与者证书存储地址"></el-table-column>
                 <el-table-column prop="identity_ctime" label="添加时间"></el-table-column>
                 <el-table-column label="身份状态" align="center" width="100">
                     <template slot-scope="scope">
@@ -68,18 +69,23 @@
                             icon="el-icon-folder-add"
                             class="orange"
                             @click="handleRegister(scope.$index, scope.row)"
-                        >身份注册</el-button>
+                        >注册身份</el-button>
                         <el-button
                             type="text"
                             icon="el-icon-folder-checked"
                             @click="handleEnroll(scope.$index, scope.row)"
-                        >身份登录</el-button>
+                        >登记证书</el-button>
                         <el-button
                             type="text"
                             icon="el-icon-folder-delete"
                             class="red"
                             @click="handleRevoke(scope.$index, scope.row)"
-                        >身份注销</el-button>
+                        >注销证书</el-button>
+                        <el-button
+                            type="text"
+                            icon="el-icon-download"
+                            @click="handleEnroll(scope.$index, scope.row)"
+                        >安装证书</el-button>
                         <el-button
                             type="text"
                             icon="el-icon-edit"
@@ -126,11 +132,46 @@
                 <el-form-item label="身份属性">
                     <el-input v-model="form.identity_attrs"></el-input>
                 </el-form-item>
+                <el-form-item label="证书存储地址">
+                    <el-input v-model="form.identity_ip"></el-input>
+                </el-form-item>
             </el-form>
             <span slot="footer" class="dialog-footer">
                 <el-button @click="editVisible = false">取 消</el-button>
                 <el-button type="primary" @click="saveEdit">确 定</el-button>
             </span>
+        </el-dialog>
+
+        <!-- 添加参与者身份信息弹出框 -->
+        <el-dialog title="添加参与者身份信息" :visible.sync="addIdentityVisible" width="30%">
+            <el-form ref="form" :model="form" label-width="80px">
+                <el-form-item label="身份名称">
+                <el-input v-model="form.identity_name"></el-input>
+                </el-form-item>
+                <el-form-item label="身份密码">
+                    <el-input v-model="form.identity_secret"></el-input>
+                </el-form-item>
+                <el-form-item label="身份类型"> 
+                    <el-radio-group v-model="form.identity_type">
+                        <el-radio label="client"></el-radio>
+                        <el-radio label="peer"></el-radio>
+                        <el-radio label="order"></el-radio>
+                    </el-radio-group>
+                </el-form-item>
+                <el-form-item label="身份从属">
+                    <el-input v-model="form.identity_affiliation"></el-input>
+                </el-form-item>
+                <el-form-item label="身份属性">
+                    <el-input v-model="form.identity_attrs"></el-input>
+                </el-form-item>
+                <el-form-item label="证书存储地址">
+                    <el-input v-model="form.identity_ip"></el-input>
+                </el-form-item>
+                <el-form-item>
+                    <el-button type="primary" @click="onSubmit">表单提交</el-button>
+                    <el-button type="danger" @click="onClear">清空</el-button>
+                </el-form-item>
+            </el-form>
         </el-dialog>
     </div>
 </template>
@@ -151,6 +192,7 @@ export default {
             delList: [],
             identityTypeList: ["client", "peer", "order"],
             editVisible: false,
+            addIdentityVisible: false,
             pageTotal: 0,
             form: {},
             idx: -1,
@@ -229,6 +271,9 @@ export default {
             this.form = row;
             this.editVisible = true;
         },
+        handleAddIdentity() {
+            this.addIdentityVisible = true;
+        },
         // 保存编辑
         saveEdit() {
             this.editVisible = false;
@@ -240,6 +285,7 @@ export default {
                     identity_type: this.form.identity_type,
                     identity_affiliation: this.form.identity_affiliation,
                     identity_attrs: this.form.identity_attrs,
+                    identity_ip: this.form.identity_ip,
                 })
                 .then(res => {
                     this.$message.success(`修改第 ${this.idx + 1} 行成功`);
@@ -322,6 +368,24 @@ export default {
                 });
             })
             .catch(() => {});
+        },
+        onSubmit() {
+            console.log("onSubmit")
+            this.$axios.post('api/identity/create', {
+                identity_name: this.form.identity_name,
+                identity_secret: this.form.identity_secret,
+                identity_type: this.form.identity_type,
+                identity_affiliation: this.form.identity_affiliation,
+                identity_attrs: this.form.identity_attrs,
+                identity_ip: this.form.identity_ip,
+            })
+            .then( (res) => {
+                this.$message.success('提交成功！');
+                this.addIdentityVisible = false;
+            })
+        },
+        onClear() {
+            this.form = {};
         },
     }
 };
