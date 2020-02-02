@@ -45,11 +45,13 @@
             >
                 <el-table-column type="selection" width="55" align="center"></el-table-column>
                 <el-table-column prop="identity_id" label="ID" width="55" align="center"></el-table-column>
-                <el-table-column prop="identity_name" label="参与者名" width="150"></el-table-column>
+                <el-table-column prop="identity_name" label="参与者名" width="80"></el-table-column>
                 <el-table-column prop="identity_type" label="参与者类型" width="100"></el-table-column>
                 <el-table-column prop="identity_affiliation" label="参与者从属" width="100"></el-table-column>
                 <el-table-column prop="identity_attrs" label="参与者属性"></el-table-column>
                 <el-table-column prop="identity_ip" label="参与者证书存储地址"></el-table-column>
+                <el-table-column prop="identity_user" label="参与者主机用户名" width="80"></el-table-column>
+                <el-table-column prop="identity_path" label="参与者主机路径"></el-table-column>
                 <el-table-column prop="identity_ctime" label="添加时间"></el-table-column>
                 <el-table-column label="身份状态" align="center" width="100">
                     <template slot-scope="scope">
@@ -84,7 +86,7 @@
                         <el-button
                             type="text"
                             icon="el-icon-download"
-                            @click="handleEnroll(scope.$index, scope.row)"
+                            @click="handleInstall(scope.$index, scope.row)"
                         >安装证书</el-button>
                         <el-button
                             type="text"
@@ -114,7 +116,7 @@
 
         <!-- 编辑弹出框 -->
         <el-dialog title="编辑" :visible.sync="editVisible" width="30%">
-            <el-form ref="form" :model="form" label-width="70px">
+            <el-form ref="form" :model="form" label-width="140px">
                 <el-form-item label="身份名称">
                     <el-input v-model="form.identity_name"></el-input>
                 </el-form-item>
@@ -135,6 +137,15 @@
                 <el-form-item label="证书存储地址">
                     <el-input v-model="form.identity_ip"></el-input>
                 </el-form-item>
+                <el-form-item label="参与者主机用户名">
+                    <el-input v-model="form.identity_user"></el-input>
+                </el-form-item>
+                <el-form-item label="参与者主机密码">
+                    <el-input v-model="form.identity_pw"></el-input>
+                </el-form-item>
+                <el-form-item label="参与者主机路径">
+                    <el-input v-model="form.identity_path"></el-input>
+                </el-form-item>
             </el-form>
             <span slot="footer" class="dialog-footer">
                 <el-button @click="editVisible = false">取 消</el-button>
@@ -144,7 +155,7 @@
 
         <!-- 添加参与者身份信息弹出框 -->
         <el-dialog title="添加参与者身份信息" :visible.sync="addIdentityVisible" width="30%">
-            <el-form ref="form" :model="form" label-width="80px">
+            <el-form ref="form" :model="form" label-width="140px">
                 <el-form-item label="身份名称">
                 <el-input v-model="form.identity_name"></el-input>
                 </el-form-item>
@@ -166,6 +177,15 @@
                 </el-form-item>
                 <el-form-item label="证书存储地址">
                     <el-input v-model="form.identity_ip"></el-input>
+                </el-form-item>
+                <el-form-item label="参与者主机用户名">
+                    <el-input v-model="form.identity_user"></el-input>
+                </el-form-item>
+                <el-form-item label="参与者主机密码">
+                    <el-input v-model="form.identity_pw"></el-input>
+                </el-form-item>
+                <el-form-item label="参与者主机路径">
+                    <el-input v-model="form.identity_path"></el-input>
                 </el-form-item>
                 <el-form-item>
                     <el-button type="primary" @click="onSubmit">表单提交</el-button>
@@ -286,6 +306,9 @@ export default {
                     identity_affiliation: this.form.identity_affiliation,
                     identity_attrs: this.form.identity_attrs,
                     identity_ip: this.form.identity_ip,
+                    identity_user: this.form.identity_user,
+                    identity_pw: this.form.identity_pw,
+                    identity_path: this.form.identity_path,
                 })
                 .then(res => {
                     this.$message.success(`修改第 ${this.idx + 1} 行成功`);
@@ -369,6 +392,30 @@ export default {
             })
             .catch(() => {});
         },
+        handleInstall(index, row) {
+            this.$confirm('确定要安装参与者 ' + row.identity_name + ' 的身份证书吗？', '提示', {
+                type: 'warning'
+            })
+            .then(() => {
+                this.$axios
+                .post('api/identity/install', {
+                    name: row.identity_name,
+                    ip: row.identity_ip,
+                    user: row.identity_user,
+                    pw: row.identity_pw,
+                    path: row.identity_path,
+                })
+                .then(res => {
+                    console.log(res.data);
+                    if (res.data.code == 0) {
+                        this.$message.success('安装 ' + row.identity_name + ' 身份证书成功');
+                    } else {
+                        this.$message.error('安装 ' + row.identity_name + ' 身份证书失败');
+                    }
+                });
+            })
+            .catch(() => {});
+        },
         onSubmit() {
             console.log("onSubmit")
             this.$axios.post('api/identity/create', {
@@ -378,6 +425,9 @@ export default {
                 identity_affiliation: this.form.identity_affiliation,
                 identity_attrs: this.form.identity_attrs,
                 identity_ip: this.form.identity_ip,
+                identity_user: this.form.identity_user,
+                identity_pw: this.form.identity_pw,
+                identity_path: this.form.identity_path,
             })
             .then( (res) => {
                 this.$message.success('提交成功！');
