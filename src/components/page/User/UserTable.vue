@@ -108,7 +108,7 @@
 
         <!-- 编辑弹出框 -->
         <el-dialog title="编辑" :visible.sync="editVisible" width="30%">
-            <el-form ref="form" :model="form" label-width="70px">
+            <el-form ref="form" :model="form" label-width="140px">
                 <el-form-item label="用户名">
                     <el-input v-model="form.user_name"></el-input>
                 </el-form-item>
@@ -135,7 +135,7 @@
                         <el-input v-model="form.user_phone"></el-input>
                     </el-form-item>
                     <el-form-item label="安全存储设备路径">
-                        <el-input v-model="form.user_path"></el-input>
+                        <el-input v-model="form.user_path" placeholder="以 / 或 \ 结尾"></el-input>
                     </el-form-item>
             </el-form>
             <span slot="footer" class="dialog-footer">
@@ -177,7 +177,7 @@
 
          <!-- 添加用户身份信息弹出框 -->
         <el-dialog title="添加用户身份信息" :visible.sync="addUserVisible" width="30%">
-            <el-form ref="form" :model="form" label-width="80px">
+            <el-form ref="form" :model="form" label-width="140px">
                 <el-form-item label="用户名">
                     <el-input v-model="form.user_name"></el-input>
                 </el-form-item>
@@ -200,7 +200,7 @@
                     <el-input v-model="form.user_phone"></el-input>
                 </el-form-item>
                 <el-form-item label="安全存储设备路径">
-                    <el-input v-model="form.user_path"></el-input>
+                    <el-input v-model="form.user_path" placeholder="以 / 或 \ 结尾"></el-input>
                 </el-form-item>
                 <el-form-item>
                     <el-button type="primary" @click="onSubmit">表单提交</el-button>
