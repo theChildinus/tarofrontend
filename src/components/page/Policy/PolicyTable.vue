@@ -3,7 +3,7 @@
         <div class="crumbs">
             <el-breadcrumb separator="/">
                 <el-breadcrumb-item>
-                    <i class="el-icon-lx-cascades"></i> 基础表格
+                    <i class="el-icon-lx-cascades"></i> 资源管理和策略管理表格
                 </el-breadcrumb-item>
             </el-breadcrumb>
         </div>
@@ -15,26 +15,30 @@
                     class="handle-del mr10"
                     @click="delAllSelection"
                 >批量删除</el-button> -->
-                <el-input v-model="search.searchSub" placeholder="主体" class="handle-input mr10"></el-input>
+                <el-input v-model="search.searchSub" placeholder="策略规则主体" class="handle-input mr10"></el-input>
                 <el-button type="primary" icon="el-icon-search" @click="handleSearch">搜索</el-button>
                 <el-button type="primary" icon="el-icon-refresh" @click="handleRefresh">刷新</el-button>
                 <el-button type="danger" icon="el-icon-delete" @click="clearSelection">清空</el-button>
-                <el-button type="primary" icon="el-icon-edit" @click="handleEnumEdit">编辑策略动作</el-button>
+                <el-button type="primary" icon="el-icon-edit" @click="handleEditPolicyTree">编辑策略树</el-button>
+                <el-button type="primary" icon="el-icon-plus" @click="handleAddPolicyRule">添加策略规则</el-button>
+                <el-button type="primary" icon="el-icon-edit" @click="handleEnumEdit">编辑策略规则动作</el-button>
+                <el-button type="primary" icon="el-icon-edit" @click="handleEditPolicySub">管理策略规则资源</el-button>
             </div>
             <el-table
                 :data="tableData"
                 border
                 class="table"
                 ref="multipleTable"
+                :default-sort = "{prop: 'policy_name', order: 'ascending'}"
                 header-cell-class-name="table-header"
                 @selection-change="handleSelectionChange"
             >
                 <el-table-column type="selection" width="55" align="center"></el-table-column>
                 <el-table-column prop="policy_id" label="ID" width="55" align="center"></el-table-column>
-                <el-table-column prop="policy_sub" label="策略主体"></el-table-column>
-                <el-table-column prop="policy_obj" label="策略资源"></el-table-column>
-                <el-table-column prop="policy_act" label="策略动作"></el-table-column>
-                <el-table-column prop="policy_type" label="策略类型"></el-table-column>
+                <el-table-column prop="policy_name" label="策略名称" sortable></el-table-column>
+                <el-table-column prop="policy_sub" label="策略规则主体"></el-table-column>
+                <el-table-column prop="policy_obj" label="策略规则资源"></el-table-column>
+                <el-table-column prop="policy_act" label="策略规则动作"></el-table-column>
                 <el-table-column prop="policy_ctime" label="添加时间"></el-table-column>
                 <el-table-column label="操作" width="180" align="center">
                     <template slot-scope="scope">
@@ -64,16 +68,19 @@
             </div>
         </div>
 
-        <!-- 编辑弹出框 -->
+        <!-- 编辑策略规则弹出框 -->
         <el-dialog title="编辑" :visible.sync="editVisible" width="30%">
-            <el-form ref="form" :model="form" label-width="70px">
-                <el-form-item label="策略主体">
+            <el-form ref="form" :model="form" label-width="120px">
+                <el-form-item label="策略名称">
+                    <el-input v-model="form.policy_name"></el-input>
+                </el-form-item>
+                <el-form-item label="策略规则主体">
                     <el-input v-model="form.policy_sub" :disabled="true"></el-input>
                 </el-form-item>
-                <el-form-item label="策略资源">
+                <el-form-item label="策略规则资源">
                     <el-input v-model="form.policy_obj"></el-input>
                 </el-form-item>
-                <el-form-item label="策略动作">
+                <el-form-item label="策略规则动作">
                     <el-select
                         v-model="form.policy_act"
                         placeholder="动作类型"
@@ -82,10 +89,6 @@
                         <el-option v-for="item in enumValueList" :key="item" :label="item" :value="item"></el-option>
                     </el-select>
                 </el-form-item>
-                <el-form-item label="策略类型"> 
-                    <el-radio disabled v-model="form.policy_type" label="IOT策略">物联网服务策略</el-radio>
-                    <el-radio disabled v-model="form.policy_type" label="Fabric策略">区块链策略</el-radio>
-                </el-form-item>
             </el-form>
             <span slot="footer" class="dialog-footer">
                 <el-button @click="editVisible = false">取 消</el-button>
@@ -93,7 +96,7 @@
             </span>
         </el-dialog>
 
-        <!-- 编辑策略动作弹出框 -->
+        <!-- 编辑策略规则动作弹出框 -->
         <el-dialog title="编辑策略动作（以 ## 分隔）" :visible.sync="editEnumVisible" width="30%">
             <el-input type="textarea" autosize placeholder="请输入内容" v-model="enumObj.enum_value"></el-input>
             <span slot="footer" class="dialog-footer">
@@ -101,6 +104,36 @@
                 <el-button type="primary" @click="saveEnumEdit">保 存</el-button>
             </span>
         </el-dialog>
+
+        <!-- 添加策略规则弹出框 -->
+        <el-dialog title="添加策略规则" :visible.sync="addPolicyRuleVisible" width="30%">
+            <el-form ref="form" :model="form" label-width="120px">
+                <el-form-item label="策略名称">
+                    <el-input v-model="form.policy_name"></el-input>
+                </el-form-item>
+                <el-form-item label="策略规则主体">
+                    <el-select v-model="form.policy_sub" placeholder="请选择" class="handle-select mr10">
+                        <el-option v-for="item in nameAndRolesList" :key="item" :label="item" :value="item"></el-option>
+                    </el-select>
+                </el-form-item>
+                <el-form-item label="策略规则资源">
+                    <el-input v-model="form.policy_obj"></el-input>
+                </el-form-item>
+                <el-form-item label="策略规则动作">
+                    <el-select v-model="form.policy_act" placeholder="请选择" class="handle-select mr10">
+                    <el-option v-for="item in enumValueList" :key="item" :label="item" :value="item"></el-option>
+                    </el-select>
+                </el-form-item>
+                <el-form-item>
+                    <el-button type="primary" @click="onSubmit">表单提交</el-button>
+                    <el-button type="danger" @click="onClear">清空</el-button>
+                </el-form-item>
+            </el-form>
+        </el-dialog>
+
+        <!-- 编辑策略树弹出框 -->
+
+        <!-- 管理策略规则资源弹出框 -->
     </div>
 </template>
 
@@ -121,6 +154,8 @@ export default {
             editVisible: false,
             enumObj: {},
             enumValueList: [],
+            addPolicyRuleVisible: false,
+            editPolicyTreeVisible: false,
             editEnumVisible: false,
             pageTotal: 0,
             form: {},
@@ -131,6 +166,7 @@ export default {
     created() {
         this.getData();
         this.getEnumData();
+        this.getNameAndRolesData();
     },
     methods: {
         // 获取 easy-mock 的模拟数据
@@ -206,6 +242,7 @@ export default {
             this.$axios
                 .post('api/policy/update', {
                     policy_id: this.form.policy_id,
+                    policy_name: this.form.policy_name,
                     policy_sub: this.form.policy_sub,
                     policy_obj: this.form.policy_obj,
                     policy_act: this.form.policy_act
@@ -260,7 +297,38 @@ export default {
                 }
             }
             this.enumValueList = str;
-        }
+        },
+        // 触发添加策略规则
+        handleAddPolicyRule() {
+            this.addPolicyRuleVisible = true;
+        },
+        // 提交添加策略规则
+        onSubmit() {
+            this.addPolicyRuleVisible = false;
+            console.log("onSubmit")
+            this.$axios.post('api/policy/create', {
+                policy_name: this.form.policy_name,
+                policy_sub: this.form.policy_sub,
+                policy_obj: this.form.policy_obj,
+                policy_act: this.form.policy_act,
+            })
+            .then( (res) => {
+                this.$message.success('提交成功！');    
+            })
+        },
+        onClear() {
+            this.form = {};
+        },
+        // 获取所有用户名和角色
+        getNameAndRolesData() {
+            this.$axios
+                .post('api/user/listNameAndRole', {
+                })
+                .then(res => {
+                    console.log('resdata: ', res.data);
+                    this.nameAndRolesList = res.data.list;
+                });
+        },
     }
 };
 </script>
@@ -275,7 +343,7 @@ export default {
 }
 
 .handle-input {
-    width: 300px;
+    width: 150px;
     display: inline-block;
 }
 .table {

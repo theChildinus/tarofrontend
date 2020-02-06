@@ -50,11 +50,6 @@ export default new Router({
                     meta: { title: '策略管理' }
                 },
                 {
-                    path: '/addpolicy',
-                    component: () => import(/* webpackChunkName: "table" */ '../components/page/Policy/AddPolicy.vue'),
-                    meta: { title: '添加策略' }
-                },
-                {
                     path: '/identitytable',
                     component: () => import(/* webpackChunkName: "table" */ '../components/page/FabricIdentity/IdentityTable.vue'),
                     meta: { title: '区块链参与者管理' }

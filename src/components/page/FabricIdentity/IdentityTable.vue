@@ -451,7 +451,7 @@ export default {
 }
 
 .handle-input {
-    width: 300px;
+    width: 150px;
     display: inline-block;
 }
 .table {

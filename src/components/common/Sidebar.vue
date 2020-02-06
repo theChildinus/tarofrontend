@@ -72,37 +72,9 @@ export default {
                     title: '区块链参与者管理'
                 },
                 {
-                    icon: 'el-icon-collection',
-                    index: 'resourcetable',
-                    title: '资源管理'
-                },
-                {
                     icon: 'el-icon-key',
                     index: 'policytable',
                     title: '策略管理'
-                },
-                {
-                    icon: 'el-icon-plus',
-                    index: '3',
-                    title: '数据管理',
-                    subs: [
-                        {
-                            index: 'adduser',
-                            title: '添加物联网服务系统用户'
-                        },
-                        {
-                            index: 'addidentity',
-                            title: '添加区块链参与者'
-                        },
-                        {
-                            index: 'addresource',
-                            title: '添加资源'
-                        },
-                        {
-                            index: 'addpolicy',
-                            title: '添加策略'
-                        },
-                    ]
                 },
             ]
         };
