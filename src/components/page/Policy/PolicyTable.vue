@@ -149,13 +149,31 @@
                 </span>
             </el-tree>
             <span slot="footer" class="dialog-footer">
-                <el-button @click="handleAddTop">添加根节点</el-button>
+                <el-button type="primary" @click="handleModel">设置访问控制模型</el-button>
+                <el-button type="primary" @click="handleAddTop">添加根节点</el-button>
                 <el-button @click="editPolicyTreeVisible = false">取 消</el-button>
                 <el-button type="primary" @click="savePolicyTree">保 存</el-button>
             </span>
         </el-dialog>
 
         <!-- 管理策略规则资源弹出框 -->
+
+        <!-- 访问控制模型弹出框 -->
+        <el-dialog title="设置访问控制模型" :visible.sync="editModelVisible" width="30%">
+            <div v-for="(item, index) in modelDataList" :key="index" :label="item" :value="item">
+                <el-row type="flex" class="row-bg">
+                <el-col><div>{{item.policy_name}}</div></el-col>
+                <el-col><el-radio-group v-model="item.model_type">
+                        <el-radio label="ACL"></el-radio>
+                        <el-radio label="RBAC"></el-radio>
+                    </el-radio-group></el-col>
+                </el-row>
+            </div>    
+            <span slot="footer" class="dialog-footer">
+                <el-button @click="editModelVisible = false">取 消</el-button>
+                <el-button type="primary" @click="savePolicyModel">保 存</el-button>
+            </span>
+        </el-dialog>
     </div>
 </template>
 
@@ -176,9 +194,13 @@ export default {
             editVisible: false,
             enumObj: {},
             enumValueList: [],
+            nameAndRolesList: [],
             addPolicyRuleVisible: false,
             editPolicyTreeVisible: false,
             editEnumVisible: false,
+            editModelVisible: false,
+            modelDataList: [],
+            modelObj: {},
             policyTreeId: -1,
             policyTreeObj: [],
             policyTreeData: [],
@@ -194,6 +216,7 @@ export default {
         this.getEnumData();
         this.getNameAndRolesData();
         this.getPolicyTreeData();
+        this.getModelData();
     },
     methods: {
         // 获取 easy-mock 的模拟数据
@@ -368,7 +391,7 @@ export default {
                 .post('api/user/listNameAndRole', {
                 })
                 .then(res => {
-                    console.log('resdata: ', res.data);
+                    //console.log('resdata: ', res.data);
                     this.nameAndRolesList = res.data.list;
                 });
         },
@@ -390,7 +413,7 @@ export default {
                     //console.log('resdata: ', res.data);
                     this.policyTreeObj = res.data;
                     this.policyTreeData = JSON.parse(this.policyTreeObj.enum_value);
-                    console.log("policyTreeData: ", this.policyTreeData);
+                    //console.log("policyTreeData: ", this.policyTreeData);
                     this.policyTreeId = this.policyTreeData[0].policyTreeId;
                     this.policyTreeData = this.policyTreeData.slice(1);
                     this.policyTreeOpts = this.policyTreeData;
@@ -439,7 +462,54 @@ export default {
             value: '父策略',
             isEdit: true,
             children: []
-            })
+            });
+        },
+        handleModel() {
+            this.editModelVisible = true;
+            this.getModelData();
+        },
+        getModelData() {
+            this.$axios
+                .post('api/enum/getValue', {
+                    enum_key: 'policy_model'
+                })
+                .then(res => {
+                    //console.log('resdata: ', res.data);
+                    this.modelObj = res.data;
+                    this.modelDataList = JSON.parse(res.data.enum_value);
+                    // 同步策略树中的根节点策略信息与设置访问控制模型中的策略信息
+                    var newModelDataList = new Array();
+                    var arrayMods = this.modelDataList;
+                    var arrayOpts = this.policyTreeOpts;
+                    arrayMods.push(arrayMods[0])
+                    for (var i = 0; i < arrayOpts.length; i++) {
+                        var label = arrayOpts[i].label;
+                        var j = 1;
+                        for (j = 1; j < arrayMods.length; j++) {
+                            if (label == arrayMods[j].policy_name) {
+                                newModelDataList.push({policy_name:label, model_type: arrayMods[j].model_type})
+                                break;
+                            }
+                        }
+                        if (j == arrayMods.length) {
+                            newModelDataList.push({policy_name:label, model_type: "ACL"})
+                        }
+                    }
+                    this.modelDataList = newModelDataList;
+                });
+        },
+        savePolicyModel() {
+            this.editModelVisible = false;
+            this.$axios
+                .post('api/enum/putValue', {
+                    enum_id: this.modelObj.enum_id,
+                    enum_key: this.modelObj.enum_key,
+                    enum_value: JSON.stringify(this.modelDataList),
+                })
+                .then(res => {
+                    this.parseEnumData(this.enumObj.enum_value);
+                    this.$message.success(`保存成功`);
+                });
         },
     }
 };
