@@ -22,7 +22,7 @@
                 <el-button type="primary" icon="el-icon-edit" @click="handleEditPolicyTree">编辑策略树</el-button>
                 <el-button type="primary" icon="el-icon-plus" @click="handleAddPolicyRule">添加策略规则</el-button>
                 <el-button type="primary" icon="el-icon-edit" @click="handleEnumEdit">编辑策略规则动作</el-button>
-                <el-button type="primary" icon="el-icon-edit" @click="handleEditPolicySub">管理策略规则资源</el-button>
+                <el-button type="primary" icon="el-icon-edit" @click="handleEditPolicyRes">管理策略规则资源</el-button>
             </div>
             <el-table
                 :data="tableData"
@@ -72,7 +72,8 @@
         <el-dialog title="编辑" :visible.sync="editVisible" width="30%">
             <el-form ref="form" :model="form" label-width="120px">
                 <el-form-item label="策略名称">
-                    <el-input v-model="form.policy_name"></el-input>
+                    <el-cascader v-model="form.policy_name" :options="policyTreeOpts" 
+                    :props="{ checkStrictly: true }" clearable style="width: 100%;"></el-cascader>
                 </el-form-item>
                 <el-form-item label="策略规则主体">
                     <el-input v-model="form.policy_sub" :disabled="true"></el-input>
@@ -109,7 +110,8 @@
         <el-dialog title="添加策略规则" :visible.sync="addPolicyRuleVisible" width="30%">
             <el-form ref="form" :model="form" label-width="120px">
                 <el-form-item label="策略名称">
-                    <el-input v-model="form.policy_name"></el-input>
+                    <el-cascader v-model="form.policy_name" :options="policyTreeOpts" 
+                    :props="{ checkStrictly: true }" clearable style="width: 100%;"></el-cascader>
                 </el-form-item>
                 <el-form-item label="策略规则主体">
                     <el-select v-model="form.policy_sub" placeholder="请选择" class="handle-select mr10">
@@ -132,6 +134,26 @@
         </el-dialog>
 
         <!-- 编辑策略树弹出框 -->
+        <el-dialog title="编辑策略树" :visible.sync="editPolicyTreeVisible" width="30%">
+            <el-tree :data="policyTreeData" node-key="id" default-expand-all :expand-on-click-node="false">
+                <span class="custom-tree-node" slot-scope="{ node, data }">
+                    <span v-if="node.data.isEdit==true">
+                        <el-input size="mini" v-model="node.data.label" @blur="saveNode(node)"></el-input>
+                    </span>
+                    <span v-else>{{ node.data.label }}</span>
+                    <span>
+                        <el-button type="text" size="mini" icon="el-icon-plus" @click="appendNode(data)"></el-button>
+                        <el-button type="text" size="mini" icon="el-icon-edit" @click="editNode(node, data)"></el-button>
+                        <el-button type="text" size="mini" icon="el-icon-delete" @click="removeNode(node, data)"></el-button>
+                    </span>
+                </span>
+            </el-tree>
+            <span slot="footer" class="dialog-footer">
+                <el-button @click="handleAddTop">添加根节点</el-button>
+                <el-button @click="editPolicyTreeVisible = false">取 消</el-button>
+                <el-button type="primary" @click="savePolicyTree">保 存</el-button>
+            </span>
+        </el-dialog>
 
         <!-- 管理策略规则资源弹出框 -->
     </div>
@@ -157,6 +179,10 @@ export default {
             addPolicyRuleVisible: false,
             editPolicyTreeVisible: false,
             editEnumVisible: false,
+            policyTreeId: -1,
+            policyTreeObj: [],
+            policyTreeData: [],
+            policyTreeOpts: [],
             pageTotal: 0,
             form: {},
             idx: -1,
@@ -167,6 +193,7 @@ export default {
         this.getData();
         this.getEnumData();
         this.getNameAndRolesData();
+        this.getPolicyTreeData();
     },
     methods: {
         // 获取 easy-mock 的模拟数据
@@ -239,10 +266,18 @@ export default {
         // 保存编辑
         saveEdit() {
             this.editVisible = false;
+            var array = this.form.policy_name;
+            var policyNameStr = "";
+            for (var i = 0; i < array.length; i++) {
+                policyNameStr += array[i];
+                if (i != array.length - 1) {
+                    policyNameStr += "#";
+                }
+            }
             this.$axios
                 .post('api/policy/update', {
                     policy_id: this.form.policy_id,
-                    policy_name: this.form.policy_name,
+                    policy_name: policyNameStr,
                     policy_sub: this.form.policy_sub,
                     policy_obj: this.form.policy_obj,
                     policy_act: this.form.policy_act
@@ -306,8 +341,16 @@ export default {
         onSubmit() {
             this.addPolicyRuleVisible = false;
             console.log("onSubmit")
+            var array = this.form.policy_name;
+            var policyNameStr = "";
+            for (var i = 0; i < array.length; i++) {
+                policyNameStr += array[i];
+                if (i != array.length - 1) {
+                    policyNameStr += "#";
+                }
+            }
             this.$axios.post('api/policy/create', {
-                policy_name: this.form.policy_name,
+                policy_name: policyNameStr,
                 policy_sub: this.form.policy_sub,
                 policy_obj: this.form.policy_obj,
                 policy_act: this.form.policy_act,
@@ -328,6 +371,75 @@ export default {
                     console.log('resdata: ', res.data);
                     this.nameAndRolesList = res.data.list;
                 });
+        },
+        handleEditPolicyRes() {
+
+        },
+        // 触发策略树编辑
+        handleEditPolicyTree() {
+            this.editPolicyTreeVisible = true;
+            this.getPolicyTreeData();
+        },
+        // 从后台获取策略树信息
+        getPolicyTreeData() {
+            this.$axios
+                .post('api/enum/getValue', {
+                    enum_key: 'policy_tree'
+                })
+                .then(res => {
+                    //console.log('resdata: ', res.data);
+                    this.policyTreeObj = res.data;
+                    this.policyTreeData = JSON.parse(this.policyTreeObj.enum_value);
+                    console.log("policyTreeData: ", this.policyTreeData);
+                    this.policyTreeId = this.policyTreeData[0].policyTreeId;
+                    this.policyTreeData = this.policyTreeData.slice(1);
+                    this.policyTreeOpts = this.policyTreeData;
+                });
+        },
+        // 保存策略树
+        savePolicyTree() {
+            this.editPolicyTreeVisible = false;
+            var IdObj = {"policyTreeId":this.policyTreeId};
+            this.policyTreeData.unshift(IdObj);
+            this.$axios
+                .post('api/enum/putValue', {
+                    enum_id: this.policyTreeObj.enum_id,
+                    enum_key: this.policyTreeObj.enum_key,
+                    enum_value: JSON.stringify(this.policyTreeData),
+                })
+                .then(res => {
+                    this.$message.success(`保存成功`);
+                });
+        },
+        appendNode(data) {
+            const newChild = { id: this.policyTreeId++, label: '未命名策略', value: '未命名策略', isEdit: true,};
+            if (!data.children) {
+                this.$set(data, 'children', []);
+            }
+            data.children.push(newChild);
+        },
+
+        editNode(node, data) {
+            node.data.isEdit = true;
+        },
+        saveNode(node) {
+            node.data.value = node.data.label;
+            node.data.isEdit = false;
+        },
+        removeNode(node, data) {
+            const parent = node.parent;
+            const children = parent.data.children || parent.data;
+            const index = children.findIndex(d => d.id === data.id);
+            children.splice(index, 1);
+        },
+        handleAddTop() {
+            this.policyTreeData.push({
+            id: ++this.policyTreeId,
+            label: '父策略',
+            value: '父策略',
+            isEdit: true,
+            children: []
+            })
         },
     }
 };
@@ -361,5 +473,13 @@ export default {
     margin: auto;
     width: 40px;
     height: 40px;
+}
+.custom-tree-node {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 14px;
+    padding-right: 8px;
 }
 </style>
