@@ -76,7 +76,18 @@
                     :props="{ checkStrictly: true }" clearable style="width: 100%;"></el-cascader>
                 </el-form-item>
                 <el-form-item label="策略规则主体">
-                    <el-input v-model="form.policy_sub" :disabled="true"></el-input>
+                    <el-row type="flex" class="row-bg" :gutter="10">
+                        <el-col>
+                            <el-cascader v-model="form.policy_sub.department" :options="departmentOpts" 
+                            :props="{ checkStrictly: true }" clearable :show-all-levels="false" placeholder="请选择部门">
+                            </el-cascader>
+                        </el-col>
+                        <el-col>
+                            <el-select v-model="form.policy_sub.role" placeholder="请选择用户或角色">
+                            <el-option v-for="item in userRoleList" :key="item" :label="item" :value="item"></el-option>
+                            </el-select>
+                        </el-col>
+                    </el-row>
                 </el-form-item>
                 <el-form-item label="策略规则资源">
                     <el-input v-model="form.policy_obj"></el-input>
@@ -114,15 +125,24 @@
                     :props="{ checkStrictly: true }" clearable style="width: 100%;"></el-cascader>
                 </el-form-item>
                 <el-form-item label="策略规则主体">
-                    <el-select v-model="form.policy_sub" placeholder="请选择" class="handle-select mr10">
-                        <el-option v-for="item in nameAndRolesList" :key="item" :label="item" :value="item"></el-option>
-                    </el-select>
+                    <el-row type="flex" class="row-bg" :gutter="10">
+                        <el-col>
+                            <el-cascader v-model="form.policy_sub.department" :options="departmentOpts" 
+                            :props="{ checkStrictly: true }" clearable :show-all-levels="false" placeholder="请选择部门">
+                            </el-cascader>
+                        </el-col>
+                        <el-col>
+                            <el-select v-model="form.policy_sub.role" placeholder="请选择用户或角色">
+                            <el-option v-for="item in userRoleList" :key="item" :label="item" :value="item"></el-option>
+                            </el-select>
+                        </el-col>
+                    </el-row>
                 </el-form-item>
                 <el-form-item label="策略规则资源">
                     <el-input v-model="form.policy_obj"></el-input>
                 </el-form-item>
                 <el-form-item label="策略规则动作">
-                    <el-select v-model="form.policy_act" placeholder="请选择" class="handle-select mr10">
+                    <el-select v-model="form.policy_act" placeholder="请选择">
                     <el-option v-for="item in enumValueList" :key="item" :label="item" :value="item"></el-option>
                     </el-select>
                 </el-form-item>
@@ -194,7 +214,8 @@ export default {
             editVisible: false,
             enumObj: {},
             enumValueList: [],
-            nameAndRolesList: [],
+            departmentOpts: [],
+            userRoleList: [],
             addPolicyRuleVisible: false,
             editPolicyTreeVisible: false,
             editEnumVisible: false,
@@ -206,7 +227,12 @@ export default {
             policyTreeData: [],
             policyTreeOpts: [],
             pageTotal: 0,
-            form: {},
+            form: {
+                policy_sub: {
+                    department: [],
+                    role: "",
+                },
+            },
             idx: -1,
             id: -1
         };
@@ -214,7 +240,7 @@ export default {
     created() {
         this.getData();
         this.getEnumData();
-        this.getNameAndRolesData();
+        this.getDepartmentAndRoleData();
         this.getPolicyTreeData();
         this.getModelData();
     },
@@ -283,7 +309,16 @@ export default {
         // 编辑操作
         handleEdit(index, row) {
             this.idx = index;
-            this.form = row;
+            var data = row;
+            var pnArr = data.policy_name.split("#");
+            var psArr = data.policy_sub.split("/");
+            this.form.policy_name = pnArr;
+            this.form.policy_sub.role = psArr[psArr.length - 1] ;
+            psArr.pop();
+            this.form.policy_sub.department = psArr;
+            this.form.policy_obj = row.policy_obj;
+            this.form.policy_act = row.policy_act;
+            this.form.policy_id = row.policy_id;
             this.editVisible = true;
         },
         // 保存编辑
@@ -297,16 +332,30 @@ export default {
                     policyNameStr += "#";
                 }
             }
+            var array = this.form.policy_sub.department;
+            var subStr = "";
+            if (array != undefined && array.length >= 1) {
+                for (var i = 0; i < array.length; i++) {
+                    subStr += array[i];
+                    if (i != array.length - 1) {
+                        subStr += "/";
+                    }
+                }
+                subStr = subStr + "/" + this.form.policy_sub.role;
+            } else {
+                subStr = this.form.policy_sub.role;
+            }
             this.$axios
                 .post('api/policy/update', {
                     policy_id: this.form.policy_id,
                     policy_name: policyNameStr,
-                    policy_sub: this.form.policy_sub,
+                    policy_sub: subStr,
                     policy_obj: this.form.policy_obj,
                     policy_act: this.form.policy_act
                 })
                 .then(res => {
                     this.$message.success(`修改第 ${this.idx + 1} 行成功`);
+                    this.handleRefresh();
                 });
             this.$set(this.tableData, this.idx, this.form);
         },
@@ -372,9 +421,22 @@ export default {
                     policyNameStr += "#";
                 }
             }
+            var array = this.form.policy_sub.department;
+            var subStr = "";
+            if (array != undefined && array.length > 1) {
+                for (var i = 0; i < array.length; i++) {
+                    subStr += array[i];
+                    if (i != array.length - 1) {
+                        subStr += "/";
+                    }
+                }
+                subStr = subStr + "/" + this.form.policy_sub.role;
+            } else {
+                subStr = this.form.policy_sub.role;
+            }
             this.$axios.post('api/policy/create', {
                 policy_name: policyNameStr,
-                policy_sub: this.form.policy_sub,
+                policy_sub: subStr,
                 policy_obj: this.form.policy_obj,
                 policy_act: this.form.policy_act,
             })
@@ -386,14 +448,24 @@ export default {
             this.form = {};
         },
         // 获取所有用户名和角色
-        getNameAndRolesData() {
+        getDepartmentAndRoleData() {
             this.$axios
-                .post('api/user/listNameAndRole', {
+                .post('api/enum/getValue', {
+                    enum_key: 'user_organization'
                 })
                 .then(res => {
                     //console.log('resdata: ', res.data);
-                    this.nameAndRolesList = res.data.list;
+                    var departmentData = JSON.parse(res.data.enum_value);
+                    this.departmentOpts = departmentData.slice(1);
                 });
+            this.$axios
+                .post('api/user/listNameAndRole', {
+                    enum_key: 'user_role'
+                })
+                .then(res => {
+                    //console.log('resdata: ', res.data);
+                    this.userRoleList = res.data.list;
+                });    
         },
         handleEditPolicyRes() {
 
