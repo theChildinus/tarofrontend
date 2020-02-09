@@ -90,7 +90,8 @@
                     </el-row>
                 </el-form-item>
                 <el-form-item label="策略规则资源">
-                    <el-input v-model="form.policy_obj"></el-input>
+                    <el-cascader v-model="form.policy_obj" :options="policyResourceOpts" 
+                    :props="{ checkStrictly: true }" clearable style="width: 100%;"></el-cascader>
                 </el-form-item>
                 <el-form-item label="策略规则动作">
                     <el-select
@@ -139,7 +140,8 @@
                     </el-row>
                 </el-form-item>
                 <el-form-item label="策略规则资源">
-                    <el-input v-model="form.policy_obj"></el-input>
+                    <el-cascader v-model="form.policy_obj" :options="policyResourceOpts" 
+                    :props="{ checkStrictly: true }" clearable style="width: 100%;"></el-cascader>
                 </el-form-item>
                 <el-form-item label="策略规则动作">
                     <el-select v-model="form.policy_act" placeholder="请选择">
@@ -177,6 +179,26 @@
         </el-dialog>
 
         <!-- 管理策略规则资源弹出框 -->
+        <el-dialog title="管理策略规则资源" :visible.sync="editPolicyResVisible" width="30%">
+            <el-tree :data="policyResourceData" node-key="id" default-expand-all :expand-on-click-node="false">
+                <span class="custom-tree-node" slot-scope="{ node, data }">
+                    <span v-if="node.data.isEdit==true">
+                        <el-input size="mini" v-model="node.data.label" @blur="saveResNode(node)"></el-input>
+                    </span>
+                    <span v-else>{{ node.data.label }}</span>
+                    <span>
+                        <el-button type="text" size="mini" icon="el-icon-plus" @click="appendResNode(data)"></el-button>
+                        <el-button type="text" size="mini" icon="el-icon-edit" @click="editResNode(node, data)"></el-button>
+                        <el-button type="text" size="mini" icon="el-icon-delete" @click="removeResNode(node, data)"></el-button>
+                    </span>
+                </span>
+            </el-tree>
+            <span slot="footer" class="dialog-footer">
+                <el-button type="primary" @click="handleAddTopRes">添加根节点</el-button>
+                <el-button @click="editPolicyResVisible = false">取 消</el-button>
+                <el-button type="primary" @click="savePolicyRes">保 存</el-button>
+            </span>
+        </el-dialog>
 
         <!-- 访问控制模型弹出框 -->
         <el-dialog title="设置访问控制模型" :visible.sync="editModelVisible" width="30%">
@@ -233,6 +255,11 @@ export default {
                     role: "",
                 },
             },
+            editPolicyResVisible: false,
+            policyResourceId: -1,
+            policyResourceObj: [],
+            policyResourceData: [],
+            policyResourceOpts: [],
             idx: -1,
             id: -1
         };
@@ -243,8 +270,10 @@ export default {
         this.getDepartmentAndRoleData();
         this.getPolicyTreeData();
         this.getModelData();
+        this.getPolicyRes();
     },
     methods: {
+        /*#################################### 获取策略规则数据 ####################################*/
         // 获取 easy-mock 的模拟数据
         getData() {
             // fetchData(this.query).then(res => {
@@ -306,17 +335,19 @@ export default {
         clearSelection() {
             this.search = {};
         },
+        /*#################################### 编辑并保存策略规则 ####################################*/
         // 编辑操作
         handleEdit(index, row) {
             this.idx = index;
             var data = row;
             var pnArr = data.policy_name.split("#");
             var psArr = data.policy_sub.split("/");
+            var poArr = data.policy_obj.split("/");
             this.form.policy_name = pnArr;
+            this.form.policy_obj = poArr;
             this.form.policy_sub.role = psArr[psArr.length - 1] ;
             psArr.pop();
             this.form.policy_sub.department = psArr;
-            this.form.policy_obj = row.policy_obj;
             this.form.policy_act = row.policy_act;
             this.form.policy_id = row.policy_id;
             this.editVisible = true;
@@ -333,24 +364,33 @@ export default {
                 }
             }
             var array = this.form.policy_sub.department;
-            var subStr = "";
+            var policySubStr = "";
             if (array != undefined && array.length >= 1) {
                 for (var i = 0; i < array.length; i++) {
-                    subStr += array[i];
+                    policySubStr += array[i];
                     if (i != array.length - 1) {
-                        subStr += "/";
+                        policySubStr += "/";
                     }
                 }
-                subStr = subStr + "/" + this.form.policy_sub.role;
+                policySubStr = policySubStr + "/" + this.form.policy_sub.role;
             } else {
-                subStr = this.form.policy_sub.role;
+                policySubStr = this.form.policy_sub.role;
+            }
+
+            var array = this.form.policy_obj;
+            var policyObjStr = "";
+            for (var i = 0; i < array.length; i++) {
+                policyObjStr += array[i];
+                if (i != array.length - 1) {
+                    policyObjStr += "/";
+                }
             }
             this.$axios
                 .post('api/policy/update', {
                     policy_id: this.form.policy_id,
                     policy_name: policyNameStr,
-                    policy_sub: subStr,
-                    policy_obj: this.form.policy_obj,
+                    policy_sub: policySubStr,
+                    policy_obj: policyObjStr,
                     policy_act: this.form.policy_act
                 })
                 .then(res => {
@@ -364,6 +404,7 @@ export default {
             this.$set(this.query, 'pageIndex', val);
             this.getData();
         },
+        /*#################################### 策略规则动作 ####################################*/
         // 获取策略动作数据
         getEnumData() {
             this.$axios
@@ -405,6 +446,7 @@ export default {
             }
             this.enumValueList = str;
         },
+        /*#################################### 添加及提交策略规则 ####################################*/
         // 触发添加策略规则
         handleAddPolicyRule() {
             this.addPolicyRuleVisible = true;
@@ -422,22 +464,30 @@ export default {
                 }
             }
             var array = this.form.policy_sub.department;
-            var subStr = "";
+            var policySubStr = "";
             if (array != undefined && array.length > 1) {
                 for (var i = 0; i < array.length; i++) {
-                    subStr += array[i];
+                    policySubStr += array[i];
                     if (i != array.length - 1) {
-                        subStr += "/";
+                        policySubStr += "/";
                     }
                 }
-                subStr = subStr + "/" + this.form.policy_sub.role;
+                policySubStr = policySubStr + "/" + this.form.policy_sub.role;
             } else {
-                subStr = this.form.policy_sub.role;
+                policySubStr = this.form.policy_sub.role;
+            }
+            var array = this.form.policy_obj;
+            var policyObjStr = "";
+            for (var i = 0; i < array.length; i++) {
+                policyObjStr += array[i];
+                if (i != array.length - 1) {
+                    policyObjStr += "/";
+                }
             }
             this.$axios.post('api/policy/create', {
                 policy_name: policyNameStr,
-                policy_sub: subStr,
-                policy_obj: this.form.policy_obj,
+                policy_sub: policySubStr,
+                policy_obj: policyObjStr,
                 policy_act: this.form.policy_act,
             })
             .then( (res) => {
@@ -447,6 +497,7 @@ export default {
         onClear() {
             this.form = {};
         },
+        /*#################################### 策略规则主体 ####################################*/
         // 获取所有用户名和角色
         getDepartmentAndRoleData() {
             this.$axios
@@ -467,9 +518,74 @@ export default {
                     this.userRoleList = res.data.list;
                 });    
         },
+        /*#################################### 策略规则资源 ####################################*/
+        // 触发管理策略规则资源
         handleEditPolicyRes() {
-
+            this.editPolicyResVisible = true;
+            this.getPolicyRes();
         },
+        // 获取策略规则资源
+        getPolicyRes() {
+            this.$axios
+                .post('api/enum/getValue', {
+                    enum_key: 'policy_resource'
+                })
+                .then(res => {
+                    //console.log('resdata: ', res.data);
+                    this.policyResourceObj = res.data;
+                    this.policyResourceData = JSON.parse(this.policyResourceObj.enum_value);
+                    //console.log("policyResourceData: ", this.policyResourceData);
+                    this.policyResourceId = this.policyResourceData[0].policyResourceId;
+                    this.policyResourceData = this.policyResourceData.slice(1);
+                    this.policyResourceOpts = this.policyResourceData;
+                });
+        },
+        // 保存策略规则资源
+        savePolicyRes() {
+            this.editPolicyResVisible = false;
+            var IdObj = {"policyResourceId":this.policyResourceId};
+            this.policyResourceData.unshift(IdObj);
+            this.$axios
+                .post('api/enum/putValue', {
+                    enum_id: this.policyResourceObj.enum_id,
+                    enum_key: this.policyResourceObj.enum_key,
+                    enum_value: JSON.stringify(this.policyResourceData),
+                })
+                .then(res => {
+                    this.$message.success(`保存成功`);
+                });
+        },
+        appendResNode(data) {
+            const newChild = { id: this.policyTreeId++, label: '未命名资源', value: '未命名资源', isEdit: true,};
+            if (!data.children) {
+                this.$set(data, 'children', []);
+            }
+            data.children.push(newChild);
+        },
+
+        editResNode(node, data) {
+            node.data.isEdit = true;
+        },
+        saveResNode(node) {
+            node.data.value = node.data.label;
+            node.data.isEdit = false;
+        },
+        removeResNode(node, data) {
+            const parent = node.parent;
+            const children = parent.data.children || parent.data;
+            const index = children.findIndex(d => d.id === data.id);
+            children.splice(index, 1);
+        },
+        handleAddTopRes() {
+            this.policyResourceData.push({
+            id: ++this.policyResourceId,
+            label: '资源',
+            value: '资源',
+            isEdit: true,
+            children: []
+            });
+        },
+        /*#################################### 策略树 ####################################*/
         // 触发策略树编辑
         handleEditPolicyTree() {
             this.editPolicyTreeVisible = true;
@@ -536,6 +652,7 @@ export default {
             children: []
             });
         },
+        /*#################################### 访问控制模型 ####################################*/
         handleModel() {
             this.editModelVisible = true;
             this.getModelData();
