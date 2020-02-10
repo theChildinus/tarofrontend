@@ -27,7 +27,8 @@
                         <el-input v-model="search.searchName" placeholder="身份名称" class="handle-input mr10"></el-input>
                         <el-button type="primary" icon="el-icon-search" @click="handleSearch">搜索</el-button>
                         <el-button type="primary" icon="el-icon-refresh" @click="handleRefresh">刷新</el-button>
-                        <el-button type="danger"  icon="el-icon-delete" @click="clearSelection">清空</el-button>
+                        <el-button type="danger"  icon="el-icon-delete" @click="clearSelection">清空</el-button>                        
+                        <el-button type="primary" icon="el-icon-edit" @click="handleOrgEdit">编辑组织结构</el-button>
                         <el-button type="primary" icon="el-icon-plus" @click="handleAddIdentity">添加参与者</el-button>
                     </el-col>
                     <el-col :span='5' :offset='3'>
@@ -129,7 +130,8 @@
                     <el-radio disabled v-model="form.identity_type" label="order">order</el-radio>
                 </el-form-item>
                 <el-form-item label="身份从属">
-                    <el-input v-model="form.identity_affiliation"></el-input>
+                    <el-cascader v-model="form.identity_affiliation" :options="orgOpts" 
+                    :props="{ checkStrictly: true }" clearable style="width: 100%;"></el-cascader>
                 </el-form-item>
                 <el-form-item label="身份属性">
                     <el-input v-model="form.identity_attrs"></el-input>
@@ -170,7 +172,8 @@
                     </el-radio-group>
                 </el-form-item>
                 <el-form-item label="身份从属">
-                    <el-input v-model="form.identity_affiliation"></el-input>
+                    <el-cascader v-model="form.identity_affiliation" :options="orgOpts" 
+                    :props="{ checkStrictly: true }" clearable style="width: 100%;"></el-cascader>
                 </el-form-item>
                 <el-form-item label="身份属性">
                     <el-input v-model="form.identity_attrs"></el-input>
@@ -192,6 +195,28 @@
                     <el-button type="danger" @click="onClear">清空</el-button>
                 </el-form-item>
             </el-form>
+        </el-dialog>
+
+        <!-- 编辑组织结构弹出框 -->
+        <el-dialog title="编辑组织结构" :visible.sync="editOrgVisible" width="30%">
+            <el-tree :data="orgData" node-key="id" default-expand-all :expand-on-click-node="false">
+                <span class="custom-tree-node" slot-scope="{ node, data }">
+                    <span v-if="node.data.isEdit==true">
+                        <el-input size="mini" v-model="node.data.label" @blur="saveOrgNode(node)"></el-input>
+                    </span>
+                    <span v-else>{{ node.data.label }}</span>
+                    <span>
+                        <el-button type="text" size="mini" icon="el-icon-plus" @click="appendOrg(data)"></el-button>
+                        <el-button type="text" size="mini" icon="el-icon-edit" @click="editOrg(node, data)"></el-button>
+                        <el-button type="text" size="mini" icon="el-icon-delete" @click="removeOrg(node, data)"></el-button>
+                    </span>
+                </span>
+            </el-tree>
+            <span slot="footer" class="dialog-footer">
+                <el-button @click="handleAddTop">添加根节点</el-button>
+                <el-button @click="editOrgVisible = false">取 消</el-button>
+                <el-button type="primary" @click="saveOrgEdit">保 存</el-button>
+            </span>
         </el-dialog>
     </div>
 </template>
@@ -216,11 +241,17 @@ export default {
             pageTotal: 0,
             form: {},
             idx: -1,
-            id: -1
+            id: -1,
+            editOrgVisible: false,
+            orgId: -1,
+            orgObj: {},
+            orgData: [],
+            orgOpts: [],
         };
     },
     created() {
         this.getData();
+        this.getOrgData();
     },
     methods: {
         // 获取后台数据
@@ -297,6 +328,15 @@ export default {
         // 保存编辑
         saveEdit() {
             this.editVisible = false;
+            var orgStr = "";
+            var array = this.form.identity_affiliation;
+            for (var i = 0; i < array.length; i++) {
+                orgStr += array[i];
+                if (i != array.length - 1) {
+                    orgStr += "/";
+                }
+            }
+            this.form.identity_affiliation = orgStr;
             this.$axios
                 .post('api/identity/update', {
                     identity_id: this.form.identity_id,
@@ -418,6 +458,15 @@ export default {
         },
         onSubmit() {
             console.log("onSubmit")
+            var orgStr = "";
+            var array = this.form.identity_affiliation;
+            for (var i = 0; i < array.length; i++) {
+                orgStr += array[i];
+                if (i != array.length - 1) {
+                    orgStr += "/";
+                }
+            }
+            this.form.identity_affiliation = orgStr;
             this.$axios.post('api/identity/create', {
                 identity_name: this.form.identity_name,
                 identity_secret: this.form.identity_secret,
@@ -436,6 +485,75 @@ export default {
         },
         onClear() {
             this.form = {};
+        },
+        // 触发组织结构编辑
+        handleOrgEdit() {
+            this.editOrgVisible = true;
+            this.getOrgData();
+        },
+        handleAddUser() {
+            this.addUserVisible = true;
+        },
+        // 从后台获取组织结构信息
+        getOrgData() {
+            this.$axios
+                .post('api/enum/getValue', {
+                    enum_key: 'identity_organization'
+                })
+                .then(res => {
+                    //console.log('resdata: ', res.data);
+                    this.orgObj = res.data;
+                    this.orgData = JSON.parse(this.orgObj.enum_value);
+                    console.log("orgData: ", this.orgData);
+                    this.orgId = this.orgData[0].orgId;
+                    this.orgData = this.orgData.slice(1);
+                    this.orgOpts = this.orgData;
+                });
+        },
+        // 保存组织结构
+        saveOrgEdit() {
+            this.editOrgVisible = false;
+            var orgIdObj = {"orgId":this.orgId};
+            this.orgData.unshift(orgIdObj);
+            this.$axios
+                .post('api/enum/putValue', {
+                    enum_id: this.orgObj.enum_id,
+                    enum_key: this.orgObj.enum_key,
+                    enum_value: JSON.stringify(this.orgData),
+                })
+                .then(res => {
+                    this.$message.success(`保存成功`);
+                });
+        },
+        appendOrg(data) {
+            const newChild = { id: this.orgId++, label: '未命名组织', value: '未命名组织', isEdit: true,};
+            if (!data.children) {
+                this.$set(data, 'children', []);
+            }
+            data.children.push(newChild);
+        },
+
+        editOrg(node, data) {
+            node.data.isEdit = true;
+        },
+        saveOrgNode(node) {
+            node.data.value = node.data.label;
+            node.data.isEdit = false;
+        },
+        removeOrg(node, data) {
+            const parent = node.parent;
+            const children = parent.data.children || parent.data;
+            const index = children.findIndex(d => d.id === data.id);
+            children.splice(index, 1);
+        },
+        handleAddTop() {
+            this.orgData.push({
+            id: ++this.orgId,
+            label: '顶级组织',
+            value: '顶级组织',
+            isEdit: true,
+            children: []
+            })
         },
     }
 };
@@ -472,5 +590,13 @@ export default {
     margin: auto;
     width: 40px;
     height: 40px;
+}
+.custom-tree-node {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 14px;
+    padding-right: 8px;
 }
 </style>
