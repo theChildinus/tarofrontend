@@ -34,11 +34,12 @@
                 @selection-change="handleSelectionChange"
             >
                 <el-table-column type="selection" width="55" align="center"></el-table-column>
-                <el-table-column prop="policy_id" label="ID" width="55" align="center"></el-table-column>
+                <el-table-column prop="policy_id" label="ID" width="60" align="center" sortable></el-table-column>
                 <el-table-column prop="policy_name" label="策略名称" sortable></el-table-column>
                 <el-table-column prop="policy_sub" label="策略规则主体"></el-table-column>
                 <el-table-column prop="policy_obj" label="策略规则资源"></el-table-column>
-                <el-table-column prop="policy_act" label="策略规则动作"></el-table-column>
+                <el-table-column prop="policy_act" label="策略规则动作" width="120"></el-table-column>
+                <el-table-column prop="policy_type" label="策略类型" width="100"></el-table-column>
                 <el-table-column prop="policy_ctime" label="添加时间"></el-table-column>
                 <el-table-column label="操作" width="180" align="center">
                     <template slot-scope="scope">
@@ -75,16 +76,32 @@
                     <el-cascader v-model="form.policy_name" :options="policyTreeOpts" 
                     :props="{ checkStrictly: true }" clearable style="width: 100%;"></el-cascader>
                 </el-form-item>
+                <el-form-item label="策略类型">
+                    <el-radio-group v-model="form.policy_type" disabled>
+                        <el-radio label="IOT策略" value="IOT策略"></el-radio>
+                        <el-radio label="Fabric策略" value="Fabric策略"></el-radio>
+                    </el-radio-group>
+                </el-form-item>
                 <el-form-item label="策略规则主体">
                     <el-row type="flex" class="row-bg" :gutter="10">
-                        <el-col>
+                        <el-col v-if="form.policy_type=='IOT策略'">
                             <el-cascader v-model="form.policy_sub.department" :options="departmentOpts" 
                             :props="{ checkStrictly: true }" clearable :show-all-levels="false" placeholder="请选择部门">
                             </el-cascader>
                         </el-col>
-                        <el-col>
+                        <el-col v-else>
+                            <el-cascader v-model="form.policy_sub.affiliation" :options="affiliationOpts" 
+                            :props="{ checkStrictly: true }" clearable :show-all-levels="false" placeholder="请选择组织">
+                            </el-cascader>
+                        </el-col>
+                        <el-col v-if="form.policy_type=='IOT策略'">
                             <el-select v-model="form.policy_sub.role" placeholder="请选择用户或角色">
-                            <el-option v-for="item in userRoleList" :key="item" :label="item" :value="item"></el-option>
+                            <el-option v-for="(item, idx) in userRoleList" :key="idx" :label="item.label" :value="item.value"></el-option>
+                            </el-select>
+                        </el-col>
+                        <el-col v-else>
+                            <el-select v-model="form.policy_sub.identity" placeholder="请选择参与者">
+                            <el-option v-for="(item, idx) in identityNamesList" :key="idx" :label="item.label" :value="item.value"></el-option>
                             </el-select>
                         </el-col>
                     </el-row>
@@ -125,16 +142,32 @@
                     <el-cascader v-model="form.policy_name" :options="policyTreeOpts" 
                     :props="{ checkStrictly: true }" clearable style="width: 100%;"></el-cascader>
                 </el-form-item>
+                <el-form-item label="策略类型">
+                    <el-radio-group v-model="form.policy_type">
+                        <el-radio label="IOT策略" value="IOT策略"></el-radio>
+                        <el-radio label="Fabric策略" value="Fabric策略"></el-radio>
+                    </el-radio-group>
+                </el-form-item>
                 <el-form-item label="策略规则主体">
                     <el-row type="flex" class="row-bg" :gutter="10">
-                        <el-col>
+                        <el-col v-if="form.policy_type=='IOT策略'">
                             <el-cascader v-model="form.policy_sub.department" :options="departmentOpts" 
                             :props="{ checkStrictly: true }" clearable :show-all-levels="false" placeholder="请选择部门">
                             </el-cascader>
                         </el-col>
-                        <el-col>
+                        <el-col v-else>
+                            <el-cascader v-model="form.policy_sub.affiliation" :options="affiliationOpts" 
+                            :props="{ checkStrictly: true }" clearable :show-all-levels="false" placeholder="请选择组织">
+                            </el-cascader>
+                        </el-col>
+                        <el-col v-if="form.policy_type=='IOT策略'">
                             <el-select v-model="form.policy_sub.role" placeholder="请选择用户或角色">
-                            <el-option v-for="item in userRoleList" :key="item" :label="item" :value="item"></el-option>
+                            <el-option v-for="(item, idx) in userRoleList" :key="idx" :label="item.label" :value="item.value"></el-option>
+                            </el-select>
+                        </el-col>
+                        <el-col v-else>
+                            <el-select v-model="form.policy_sub.identity" placeholder="请选择参与者">
+                            <el-option v-for="(item, idx) in identityNamesList" :key="idx" :label="item.label" :value="item.value"></el-option>
                             </el-select>
                         </el-col>
                     </el-row>
@@ -238,6 +271,8 @@ export default {
             enumValueList: [],
             departmentOpts: [],
             userRoleList: [],
+            affiliationOpts: [],
+            identityNamesList: [],
             addPolicyRuleVisible: false,
             editPolicyTreeVisible: false,
             editEnumVisible: false,
@@ -251,8 +286,10 @@ export default {
             pageTotal: 0,
             form: {
                 policy_sub: {
-                    department: [],
-                    role: "",
+                    department:[],
+                    role:"",
+                    affiliation:[],
+                    identity:"",
                 },
             },
             editPolicyResVisible: false,
@@ -268,6 +305,7 @@ export default {
         this.getData();
         this.getEnumData();
         this.getDepartmentAndRoleData();
+        this.getOrgAndIdentityData();
         this.getPolicyTreeData();
         this.getModelData();
         this.getPolicyRes();
@@ -345,11 +383,18 @@ export default {
             var poArr = data.policy_obj.split("/");
             this.form.policy_name = pnArr;
             this.form.policy_obj = poArr;
-            this.form.policy_sub.role = psArr[psArr.length - 1] ;
-            psArr.pop();
-            this.form.policy_sub.department = psArr;
+            if (data.policy_type == 'IOT策略') {
+                this.form.policy_sub.role = psArr[psArr.length - 1];
+                psArr.pop();
+                this.form.policy_sub.department = psArr;
+            } else {
+                this.form.policy_sub.identity = psArr[psArr.length - 1];
+                psArr.pop();
+                this.form.policy_sub.affiliation = psArr;
+            }
             this.form.policy_act = row.policy_act;
             this.form.policy_id = row.policy_id;
+            this.form.policy_type = row.policy_type;
             this.editVisible = true;
         },
         // 保存编辑
@@ -363,7 +408,12 @@ export default {
                     policyNameStr += "#";
                 }
             }
-            var array = this.form.policy_sub.department;
+            var array = [];
+            if (this.form.policy_type == 'IOT策略') {
+                array = this.form.policy_sub.department;
+            } else {
+                array = this.form.policy_sub.affiliation;
+            }
             var policySubStr = "";
             if (array != undefined && array.length >= 1) {
                 for (var i = 0; i < array.length; i++) {
@@ -372,9 +422,17 @@ export default {
                         policySubStr += "/";
                     }
                 }
-                policySubStr = policySubStr + "/" + this.form.policy_sub.role;
+                if (this.form.policy_type == 'IOT策略') {
+                    policySubStr = policySubStr + "/" + this.form.policy_sub.role;
+                } else {
+                    policySubStr = policySubStr + "/" + this.form.policy_sub.identity;
+                }
             } else {
-                policySubStr = this.form.policy_sub.role;
+                if (this.form.policy_type == 'IOT策略') {
+                    policySubStr = this.form.policy_sub.role;
+                } else {
+                    policySubStr = this.form.policy_sub.identity;
+                }
             }
 
             var array = this.form.policy_obj;
@@ -391,7 +449,8 @@ export default {
                     policy_name: policyNameStr,
                     policy_sub: policySubStr,
                     policy_obj: policyObjStr,
-                    policy_act: this.form.policy_act
+                    policy_act: this.form.policy_act,
+                    policy_type: this.form.policy_type,
                 })
                 .then(res => {
                     this.$message.success(`修改第 ${this.idx + 1} 行成功`);
@@ -449,6 +508,14 @@ export default {
         /*#################################### 添加及提交策略规则 ####################################*/
         // 触发添加策略规则
         handleAddPolicyRule() {
+            this.form = {
+                policy_sub: {
+                    department:[],
+                    role:"",
+                    affiliation:[],
+                    identity:"",
+                },
+            };
             this.addPolicyRuleVisible = true;
         },
         // 提交添加策略规则
@@ -463,18 +530,31 @@ export default {
                     policyNameStr += "#";
                 }
             }
-            var array = this.form.policy_sub.department;
+            var array = [];
+            if (this.form.policy_type == 'IOT策略') {
+                array = this.form.policy_sub.department;
+            } else {
+                array = this.form.policy_sub.affiliation;
+            }
             var policySubStr = "";
-            if (array != undefined && array.length > 1) {
+            if (array != undefined && array.length >= 1) {
                 for (var i = 0; i < array.length; i++) {
                     policySubStr += array[i];
                     if (i != array.length - 1) {
                         policySubStr += "/";
                     }
                 }
-                policySubStr = policySubStr + "/" + this.form.policy_sub.role;
+                if (this.form.policy_type == 'IOT策略') {
+                    policySubStr = policySubStr + "/" + this.form.policy_sub.role;
+                } else {
+                    policySubStr = policySubStr + "/" + this.form.policy_sub.identity;
+                }
             } else {
-                policySubStr = this.form.policy_sub.role;
+                if (this.form.policy_type == 'IOT策略') {
+                    policySubStr = this.form.policy_sub.role;
+                } else {
+                    policySubStr = this.form.policy_sub.identity;
+                }
             }
             var array = this.form.policy_obj;
             var policyObjStr = "";
@@ -489,13 +569,21 @@ export default {
                 policy_sub: policySubStr,
                 policy_obj: policyObjStr,
                 policy_act: this.form.policy_act,
+                policy_type: this.form.policy_type,
             })
             .then( (res) => {
                 this.$message.success('提交成功！');    
             })
         },
         onClear() {
-            this.form = {};
+            this.form = {
+                policy_sub: {
+                    department:[],
+                    role:"",
+                    affiliation:[],
+                    identity:"",
+                },
+            };
         },
         /*#################################### 策略规则主体 ####################################*/
         // 获取所有用户名和角色
@@ -517,6 +605,25 @@ export default {
                     //console.log('resdata: ', res.data);
                     this.userRoleList = res.data.list;
                 });    
+        },
+        getOrgAndIdentityData() {
+            this.$axios
+                .post('api/enum/getValue', {
+                    enum_key: 'identity_organization'
+                })
+                .then(res => {
+                    //console.log('resdata: ', res.data);
+                    var data = JSON.parse(res.data.enum_value);
+                    this.affiliationOpts = data.slice(1);
+                });
+            this.$axios
+                .post('api/identity/listNames', {
+                })
+                .then(res => {
+                    //console.log('resdata: ', res.data);
+                    this.identityNamesList = res.data.list;
+                    console.log("identityNamesList: ", this.identityNamesList);
+                });
         },
         /*#################################### 策略规则资源 ####################################*/
         // 触发管理策略规则资源
