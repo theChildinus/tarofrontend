@@ -74,7 +74,7 @@
             <el-form ref="form" :model="form" label-width="120px">
                 <el-form-item label="策略名称">
                     <el-cascader v-model="form.policy_name" :options="policyTreeOpts" 
-                    :props="{ checkStrictly: true }" clearable style="width: 100%;"></el-cascader>
+                    :props="{ checkStrictly: true }" clearable style="width: 100%;" disabled></el-cascader>
                 </el-form-item>
                 <el-form-item label="策略类型">
                     <el-radio-group v-model="form.policy_type" disabled>
@@ -349,6 +349,7 @@ export default {
                         })
                         .then(res => {
                             this.$message.success('删除成功');
+                            this.getData();
                         });
                 })
                 .catch(() => {});

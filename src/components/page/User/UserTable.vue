@@ -478,7 +478,6 @@ export default {
                     user_id: this.form.user_id,
                     user_name: this.form.user_name,
                     user_role: roleStr1 + "#" + roleStr2,
-                    user_department: this.form.user_department,
                     user_address: this.form.user_address,
                     user_email: this.form.user_email,
                     user_phone: this.form.user_phone,
@@ -661,7 +660,6 @@ export default {
             this.$axios.post('api/user/create', {
                 user_name: this.form.user_name,
                 user_role: roleStr1 + "#" + roleStr2,
-                user_department: this.form.user_department,
                 user_address: this.form.user_address,
                 user_email: this.form.user_email,
                 user_phone: this.form.user_phone,
