@@ -30,6 +30,7 @@
                         <el-button type="danger" icon="el-icon-delete" @click="clearSelection">清空</el-button>
                         <el-button type="primary" icon="el-icon-edit" @click="handleEnumEdit">编辑用户角色</el-button>
                         <el-button type="primary" icon="el-icon-edit" @click="handleOrgEdit">编辑组织结构</el-button>
+                        <el-button type="primary" icon="el-icon-edit" @click="handleMutexRole">设置互斥角色</el-button>
                         <el-button type="primary" icon="el-icon-plus" @click="handleAddUser">添加用户</el-button>
                     </el-col>
                     <el-col :span='4' :offset='0'>
@@ -50,7 +51,7 @@
                 <el-table-column prop="user_name" label="用户名"></el-table-column>
                 <el-table-column label="用户角色">
                     <template slot-scope="scope">
-                    <el-tag v-for="tag in scope.row.user_role" :key="tag" type="info">{{tag}}</el-tag>
+                    <span v-for="role in scope.row.role_list" :key="role" type="info">{{role+"\n"}}</span>
                     </template>
                 </el-table-column>
                 <el-table-column prop="user_address" label="地址"></el-table-column>
@@ -241,6 +242,62 @@
                 </el-form-item>
             </el-form>
         </el-dialog>
+
+        <!-- 设置互斥角色弹出框 -->
+        <el-dialog title="设置互斥角色" :visible.sync="editMutexRoleVisible" width="30%">
+            <el-table
+                :data="mutexRoleData"
+                border
+                class="table"
+                ref="multipleTable"
+                header-cell-class-name="table-header"
+            >
+                <el-table-column prop="user_role1" label="角色1"></el-table-column>
+                <el-table-column prop="user_role2" label="角色2"></el-table-column>
+                <el-table-column label="操作" width="50" align="center">
+                    <template slot-scope="scope">
+                        <el-button type="text" icon="el-icon-delete" class="red" @click="delMutexRole(scope.$index, scope.row)"></el-button>
+                    </template>
+                </el-table-column>
+            </el-table>
+            <span slot="footer" class="dialog-footer">
+                <el-button type="primary" @click="addMutexRole">添加互斥角色</el-button>
+                <el-button @click="editMutexRoleVisible = false">取 消</el-button>
+                <el-button type="primary" @click="saveMutexRole">保 存</el-button>
+            </span>
+        </el-dialog>
+
+        <el-dialog title="添加互斥角色" :visible.sync="addMutexRoleVisible" width="27%">
+            <el-form ref="form" :model="form">
+                <el-form-item label="角色1">
+                    <el-row type="flex" class="row-bg" :gutter="10">
+                    <el-col>
+                        <el-cascader v-model="form.user_role1.department" :options="orgOpts" 
+                        :props="{ checkStrictly: true }" clearable style="width: 100%;"></el-cascader>
+                    </el-col>
+                    <el-col>
+                        <el-select v-model="form.user_role1.role" placeholder="用户角色" class="handle-select mr10">
+                        <el-option v-for="item in enumValueList" :key="item" :label="item" :value="item"></el-option>
+                        </el-select>
+                    </el-col>
+                    </el-row>
+                </el-form-item>
+                <el-form-item label="角色2">
+                    <el-row type="flex" class="row-bg" :gutter="10">
+                    <el-col>
+                        <el-cascader v-model="form.user_role2.department" :options="orgOpts" 
+                        :props="{ checkStrictly: true }" clearable style="width: 100%;"></el-cascader>
+                    </el-col>
+                    <el-col>
+                        <el-select v-model="form.user_role2.role" placeholder="用户角色" class="handle-select mr10">
+                        <el-option v-for="item in enumValueList" :key="item" :label="item" :value="item"></el-option>
+                        </el-select>
+                    </el-col>
+                    </el-row>
+                </el-form-item>
+                <el-button type="primary" @click="saveMutexRoleItem">确 定</el-button>
+            </el-form>
+        </el-dialog>
     </div>
 </template>
 
@@ -264,6 +321,10 @@ export default {
             editEnumVisible: false,
             editOrgVisible: false,
             addUserVisible: false,
+            editMutexRoleVisible: false,
+            addMutexRoleVisible: false,
+            mutexRoleObj: {},
+            mutexRoleData: [],
             pageTotal: 0,
             form: {
                 user_role1:{
@@ -288,6 +349,7 @@ export default {
         this.getData();
         this.getEnumData();
         this.getOrgData();
+        this.getMutexRoleData();
     },
     methods: {
         // 获取 easy-mock 的模拟数据
@@ -308,9 +370,11 @@ export default {
                     this.tableData = res.data.list;
                     this.pageTotal = res.data.count || 50;
                     for (var i = 0; i < this.tableData.length; i++) {
-                        var roleList = this.tableData[i].user_role.split("#");
-                        this.tableData[i].user_role = roleList;
-                        console.log("roleList")
+                        var list = this.tableData[i].user_role.split("#");
+                        if (list.length == 2 && list[1] == "") {
+                            list.splice(1, 1);
+                        }
+                        this.tableData[i].role_list = list;
                     }
                     console.log("table:", this.tableData);
                 });
@@ -427,15 +491,18 @@ export default {
         handleEdit(index, row) {
             this.idx = index;
             var data = row;
+            this.onClear();
             var urs = data.user_role.split("#");
             var ur1Arr = urs[0].split("/");
-            var ur2Arr = urs[1].split("/");
             this.form.user_role1.role = ur1Arr[ur1Arr.length - 1];
             ur1Arr.pop();
             this.form.user_role1.department = ur1Arr;
-            this.form.user_role2.role = ur2Arr[ur2Arr.length - 1];
-            ur2Arr.pop();
-            this.form.user_role2.department = ur2Arr;
+            if (urs.length == 2) {
+                var ur2Arr = urs[1].split("/");
+                this.form.user_role2.role = ur2Arr[ur2Arr.length - 1];
+                ur2Arr.pop();
+                this.form.user_role2.department = ur2Arr;
+            }
             this.form.user_id = data.user_id,
             this.form.user_name = data.user_name,
             this.form.user_address = data.user_address,
@@ -447,32 +514,12 @@ export default {
         // 保存编辑
         saveEdit() {
             this.editVisible = false;
-            var roleStr1 = "";
-            var array = this.form.user_role1.department;
-            if (array != undefined && array.length >= 1) {
-                for (var i = 0; i < array.length; i++) {
-                    roleStr1 += array[i];
-                    if (i != array.length - 1) {
-                        roleStr1 += "/";
-                    }
-                }
-                roleStr1 = roleStr1 + "/" + this.form.user_role1.role;
-            } else {
-                roleStr1 = this.form.user_role1.role;
-            }
-            var roleStr2 = "";
-            var array = this.form.user_role2.department;
-            if (array != undefined && array.length >= 1) {
-                for (var i = 0; i < array.length; i++) {
-                    roleStr2 += array[i];
-                    if (i != array.length - 1) {
-                        roleStr2 += "/";
-                    }
-                }
-                roleStr2 = roleStr2 + "/" + this.form.user_role2.role;
-            } else {
-                roleStr2 = this.form.user_role2.role;
-            }
+            var department = this.form.user_role1.department;
+            var role = this.form.user_role1.role;
+            var roleStr1 = this.generateRoleStr(department, role);
+            department = this.form.user_role2.department;
+            role = this.form.user_role2.role;
+            var roleStr2 = this.generateRoleStr(department, role);
             this.$axios
                 .post('api/user/update', {
                     user_id: this.form.user_id,
@@ -567,6 +614,7 @@ export default {
         },
         handleAddUser() {
             this.addUserVisible = true;
+            this.onClear();
         },
         // 从后台获取组织结构信息
         getOrgData() {
@@ -631,32 +679,12 @@ export default {
         },
         onSubmit() {
             console.log("onSubmit")
-            var roleStr1 = "";
-            var array = this.form.user_role1.department;
-            if (array != undefined && array.length >= 1) {
-                for (var i = 0; i < array.length; i++) {
-                    roleStr1 += array[i];
-                    if (i != array.length - 1) {
-                        roleStr1 += "/";
-                    }
-                }
-                roleStr1 = roleStr1 + "/" + this.form.user_role1.role;
-            } else {
-                roleStr1 = this.form.user_role1.role;
-            }
-            var roleStr2 = "";
-            var array = this.form.user_role2.department;
-            if (array != undefined && array.length >= 1) {
-                for (var i = 0; i < array.length; i++) {
-                    roleStr2 += array[i];
-                    if (i != array.length - 1) {
-                        roleStr2 += "/";
-                    }
-                }
-                roleStr2 = roleStr2 + "/" + this.form.user_role2.role;
-            } else {
-                roleStr2 = this.form.user_role2.role;
-            }
+            var department = this.form.user_role1.department;
+            var role = this.form.user_role1.role;
+            var roleStr1 = this.generateRoleStr(department, role);
+            department = this.form.user_role2.department;
+            role = this.form.user_role2.role;
+            var roleStr2 = this.generateRoleStr(department, role);
             this.$axios.post('api/user/create', {
                 user_name: this.form.user_name,
                 user_role: roleStr1 + "#" + roleStr2,
@@ -671,7 +699,78 @@ export default {
             })
         },
         onClear() {
-            this.form = {};
+            this.form = {
+                user_role1:{
+                    department: [],
+                    role:"",
+                },
+                user_role2:{
+                    department: [],
+                    role:"",
+                }
+            };
+        },
+        handleMutexRole() {
+            this.editMutexRoleVisible = true;
+        },
+        getMutexRoleData() {
+            this.$axios
+                .post('api/enum/getValue', {
+                    enum_key: 'mutex_role'
+                })
+                .then(res => {
+                    console.log('resdata: ', res.data);
+                    this.mutexRoleObj = res.data;
+                    this.mutexRoleData = JSON.parse(this.mutexRoleObj.enum_value);
+                });
+        },
+        saveMutexRole() {
+            this.editMutexRoleVisible = false;
+            this.$axios
+                .post('api/enum/putValue', {
+                    enum_id: this.mutexRoleObj.enum_id,
+                    enum_key: this.mutexRoleObj.enum_key,
+                    enum_value: JSON.stringify(this.mutexRoleData),
+                })
+                .then(res => {
+                    this.$message.success(`保存成功`);
+                });
+        },
+        addMutexRole() {
+            this.addMutexRoleVisible = true;
+            this.onClear();
+        },
+        delMutexRole(index, row) {
+            this.mutexRoleData.splice(index, 1);
+        },
+        saveMutexRoleItem() {
+            this.addMutexRoleVisible = false;
+            var department = this.form.user_role1.department;
+            var role = this.form.user_role1.role;
+            var roleStr1 = this.generateRoleStr(department, role);
+            department = this.form.user_role2.department;
+            role = this.form.user_role2.role;
+            var roleStr2 = this.generateRoleStr(department, role);
+            this.mutexRoleData.push({
+                "user_role1": roleStr1,
+                "user_role2": roleStr2,
+            })
+        },
+        generateRoleStr(department, role) {
+            var roleStr = "";
+            var array = department;
+            if (array != undefined && array.length >= 1) {
+                for (var i = 0; i < array.length; i++) {
+                    roleStr += array[i];
+                    if (i != array.length - 1) {
+                        roleStr += "/";
+                    }
+                }
+                roleStr = roleStr + "/" + role;
+            } else {
+                roleStr = role;
+            }
+            return roleStr;
         },
     }
 };
