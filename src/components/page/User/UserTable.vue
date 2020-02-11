@@ -48,8 +48,11 @@
                 <el-table-column type="selection" width="55" align="center"></el-table-column>
                 <el-table-column prop="user_id" label="ID" width="55" align="center"></el-table-column>
                 <el-table-column prop="user_name" label="用户名"></el-table-column>
-                <el-table-column prop="user_role" label="用户角色"></el-table-column>
-                <el-table-column prop="user_department" label="部门"></el-table-column>
+                <el-table-column label="用户角色">
+                    <template slot-scope="scope">
+                    <el-tag v-for="tag in scope.row.user_role" :key="tag" type="info">{{tag}}</el-tag>
+                    </template>
+                </el-table-column>
                 <el-table-column prop="user_address" label="地址"></el-table-column>
                 <el-table-column prop="user_email" label="电子邮箱"></el-table-column>
                 <el-table-column prop="user_phone" label="联系方式"></el-table-column>
@@ -112,31 +115,44 @@
                 <el-form-item label="用户名">
                     <el-input v-model="form.user_name"></el-input>
                 </el-form-item>
-                <el-form-item label="角色">
-                    <el-select
-                        v-model="form.user_role"
-                        placeholder="用户角色"
-                        class="handle-select mr10"
-                    >
-                        <el-option v-for="item in enumValueList" :key="item" :label="item" :value="item"></el-option>
-                    </el-select>
-                    </el-form-item>
-                    <el-form-item label="部门">
-                        <el-cascader v-model="form.user_department" :options="orgOpts" 
+                <el-form-item label="用户角色1">
+                    <el-row type="flex" class="row-bg" :gutter="10">
+                    <el-col>
+                        <el-cascader v-model="form.user_role1.department" :options="orgOpts" 
                         :props="{ checkStrictly: true }" clearable style="width: 100%;"></el-cascader>
-                    </el-form-item>
-                    <el-form-item label="地址">
-                        <el-input v-model="form.user_address"></el-input>
-                    </el-form-item>
-                    <el-form-item label="电子邮箱">
-                        <el-input v-model="form.user_email"></el-input>
-                    </el-form-item>
-                    <el-form-item label="联系电话">
-                        <el-input v-model="form.user_phone"></el-input>
-                    </el-form-item>
-                    <el-form-item label="安全存储设备路径">
-                        <el-input v-model="form.user_path" placeholder="以 / 或 \ 结尾"></el-input>
-                    </el-form-item>
+                    </el-col>
+                    <el-col>
+                        <el-select v-model="form.user_role1.role" placeholder="用户角色" class="handle-select mr10">
+                        <el-option v-for="item in enumValueList" :key="item" :label="item" :value="item"></el-option>
+                        </el-select>
+                    </el-col>
+                    </el-row>
+                </el-form-item>
+                <el-form-item label="用户角色2">
+                    <el-row type="flex" class="row-bg" :gutter="10">
+                    <el-col>
+                        <el-cascader v-model="form.user_role2.department" :options="orgOpts" 
+                        :props="{ checkStrictly: true }" clearable style="width: 100%;"></el-cascader>
+                    </el-col>
+                    <el-col>
+                        <el-select v-model="form.user_role2.role" placeholder="用户角色" class="handle-select mr10">
+                        <el-option v-for="item in enumValueList" :key="item" :label="item" :value="item"></el-option>
+                        </el-select>
+                    </el-col>
+                    </el-row>
+                </el-form-item>
+                <el-form-item label="地址">
+                    <el-input v-model="form.user_address"></el-input>
+                </el-form-item>
+                <el-form-item label="电子邮箱">
+                    <el-input v-model="form.user_email"></el-input>
+                </el-form-item>
+                <el-form-item label="联系电话">
+                    <el-input v-model="form.user_phone"></el-input>
+                </el-form-item>
+                <el-form-item label="安全存储设备路径">
+                    <el-input v-model="form.user_path" placeholder="以 / 或 \ 结尾"></el-input>
+                </el-form-item>
             </el-form>
             <span slot="footer" class="dialog-footer">
                 <el-button @click="editVisible = false">取 消</el-button>
@@ -181,14 +197,31 @@
                 <el-form-item label="用户名">
                     <el-input v-model="form.user_name"></el-input>
                 </el-form-item>
-                <el-form-item label="角色">
-                    <el-select v-model="form.user_role" placeholder="用户角色" class="handle-select mr10">
+                <el-form-item label="用户角色1">
+                    <el-row type="flex" class="row-bg" :gutter="10">
+                    <el-col>
+                        <el-cascader v-model="form.user_role1.department" :options="orgOpts" 
+                        :props="{ checkStrictly: true }" clearable style="width: 100%;"></el-cascader>
+                    </el-col>
+                    <el-col>
+                        <el-select v-model="form.user_role1.role" placeholder="用户角色" class="handle-select mr10">
                         <el-option v-for="item in enumValueList" :key="item" :label="item" :value="item"></el-option>
-                    </el-select>
+                        </el-select>
+                    </el-col>
+                    </el-row>
                 </el-form-item>
-                <el-form-item label="部门">
-                    <el-cascader v-model="form.user_department" :options="orgOpts" 
-                    :props="{ checkStrictly: true }" clearable style="width: 100%;"></el-cascader>
+                <el-form-item label="用户角色2">
+                    <el-row type="flex" class="row-bg" :gutter="10">
+                    <el-col>
+                        <el-cascader v-model="form.user_role2.department" :options="orgOpts" 
+                        :props="{ checkStrictly: true }" clearable style="width: 100%;"></el-cascader>
+                    </el-col>
+                    <el-col>
+                        <el-select v-model="form.user_role2.role" placeholder="用户角色" class="handle-select mr10">
+                        <el-option v-for="item in enumValueList" :key="item" :label="item" :value="item"></el-option>
+                        </el-select>
+                    </el-col>
+                    </el-row>
                 </el-form-item>
                 <el-form-item label="地址">
                     <el-input v-model="form.user_address"></el-input>
@@ -232,7 +265,17 @@ export default {
             editOrgVisible: false,
             addUserVisible: false,
             pageTotal: 0,
-            form: {},
+            form: {
+                user_role1:{
+                    department: [],
+                    role:"",
+                },
+                user_role2:{
+                    department: [],
+                    role:"",
+                }
+            },
+            roleTagList: [],
             idx: -1,
             id: -1,
             orgId: -1,
@@ -261,9 +304,15 @@ export default {
                     search_name: this.search.searchName == null ? '' : this.search.searchName
                 })
                 .then(res => {
-                    console.log(res.data);
+                    //console.log(res.data);
                     this.tableData = res.data.list;
                     this.pageTotal = res.data.count || 50;
+                    for (var i = 0; i < this.tableData.length; i++) {
+                        var roleList = this.tableData[i].user_role.split("#");
+                        this.tableData[i].user_role = roleList;
+                        console.log("roleList")
+                    }
+                    console.log("table:", this.tableData);
                 });
         },
         handleRefresh() {
@@ -377,26 +426,58 @@ export default {
         // 编辑操作
         handleEdit(index, row) {
             this.idx = index;
-            this.form = row;
+            var data = row;
+            var urs = data.user_role.split("#");
+            var ur1Arr = urs[0].split("/");
+            var ur2Arr = urs[1].split("/");
+            this.form.user_role1.role = ur1Arr[ur1Arr.length - 1];
+            ur1Arr.pop();
+            this.form.user_role1.department = ur1Arr;
+            this.form.user_role2.role = ur2Arr[ur2Arr.length - 1];
+            ur2Arr.pop();
+            this.form.user_role2.department = ur2Arr;
+            this.form.user_id = data.user_id,
+            this.form.user_name = data.user_name,
+            this.form.user_address = data.user_address,
+            this.form.user_email = data.user_email,
+            this.form.user_phone = data.user_phone,
+            this.form.user_path = data.user_path,
             this.editVisible = true;
         },
         // 保存编辑
         saveEdit() {
             this.editVisible = false;
-            var departmentStr = "";
-            var array = this.form.user_department;
-            for (var i = 0; i < array.length; i++) {
-                departmentStr += array[i];
-                if (i != array.length - 1) {
-                    departmentStr += "/";
+            var roleStr1 = "";
+            var array = this.form.user_role1.department;
+            if (array != undefined && array.length >= 1) {
+                for (var i = 0; i < array.length; i++) {
+                    roleStr1 += array[i];
+                    if (i != array.length - 1) {
+                        roleStr1 += "/";
+                    }
                 }
+                roleStr1 = roleStr1 + "/" + this.form.user_role1.role;
+            } else {
+                roleStr1 = this.form.user_role1.role;
             }
-            this.form.user_department = departmentStr;
+            var roleStr2 = "";
+            var array = this.form.user_role2.department;
+            if (array != undefined && array.length >= 1) {
+                for (var i = 0; i < array.length; i++) {
+                    roleStr2 += array[i];
+                    if (i != array.length - 1) {
+                        roleStr2 += "/";
+                    }
+                }
+                roleStr2 = roleStr2 + "/" + this.form.user_role2.role;
+            } else {
+                roleStr2 = this.form.user_role2.role;
+            }
             this.$axios
                 .post('api/user/update', {
                     user_id: this.form.user_id,
                     user_name: this.form.user_name,
-                    user_role: this.form.user_role,
+                    user_role: roleStr1 + "#" + roleStr2,
                     user_department: this.form.user_department,
                     user_address: this.form.user_address,
                     user_email: this.form.user_email,
@@ -551,18 +632,35 @@ export default {
         },
         onSubmit() {
             console.log("onSubmit")
-            var departmentStr = "";
-            var array = this.form.user_department;
-            for (var i = 0; i < array.length; i++) {
-                departmentStr += array[i];
-                if (i != array.length - 1) {
-                    departmentStr += "/";
+            var roleStr1 = "";
+            var array = this.form.user_role1.department;
+            if (array != undefined && array.length >= 1) {
+                for (var i = 0; i < array.length; i++) {
+                    roleStr1 += array[i];
+                    if (i != array.length - 1) {
+                        roleStr1 += "/";
+                    }
                 }
+                roleStr1 = roleStr1 + "/" + this.form.user_role1.role;
+            } else {
+                roleStr1 = this.form.user_role1.role;
             }
-            this.form.user_department = departmentStr;
+            var roleStr2 = "";
+            var array = this.form.user_role2.department;
+            if (array != undefined && array.length >= 1) {
+                for (var i = 0; i < array.length; i++) {
+                    roleStr2 += array[i];
+                    if (i != array.length - 1) {
+                        roleStr2 += "/";
+                    }
+                }
+                roleStr2 = roleStr2 + "/" + this.form.user_role2.role;
+            } else {
+                roleStr2 = this.form.user_role2.role;
+            }
             this.$axios.post('api/user/create', {
                 user_name: this.form.user_name,
-                user_role: this.form.user_role,
+                user_role: roleStr1 + "#" + roleStr2,
                 user_department: this.form.user_department,
                 user_address: this.form.user_address,
                 user_email: this.form.user_email,
