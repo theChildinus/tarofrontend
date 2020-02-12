@@ -51,7 +51,7 @@
                 <el-table-column prop="user_name" label="用户名"></el-table-column>
                 <el-table-column label="用户角色">
                     <template slot-scope="scope">
-                    <span v-for="role in scope.row.role_list" :key="role" type="info">{{role+"\n"}}</span>
+                    <li v-for="role in scope.row.role_list" :key="role" type="info">{{role}}</li>
                     </template>
                 </el-table-column>
                 <el-table-column prop="user_address" label="地址"></el-table-column>
@@ -376,7 +376,6 @@ export default {
                         }
                         this.tableData[i].role_list = list;
                     }
-                    console.log("table:", this.tableData);
                 });
         },
         handleRefresh() {
@@ -536,6 +535,7 @@ export default {
                     } else {
                         this.$message.error(`修改第 ${this.idx + 1} 行失败`);
                     }
+                    this.getData();
                 });
 
             this.$set(this.tableData, this.idx, this.form);
@@ -556,7 +556,7 @@ export default {
                         name: row.user_name,
                     })
                     .then(res => {
-                        console.log(res.data);
+                        //console.log(res.data);
                         if (res.data.code == 0) {
                             this.$message.success('创建 ' + row.user_name + ' 的证书成功，请刷新页面');
                         } else {
@@ -626,7 +626,6 @@ export default {
                     //console.log('resdata: ', res.data);
                     this.orgObj = res.data;
                     this.orgData = JSON.parse(this.orgObj.enum_value);
-                    console.log("orgData: ", this.orgData);
                     this.orgId = this.orgData[0].orgId;
                     this.orgData = this.orgData.slice(1);
                     this.orgOpts = this.orgData;
@@ -644,8 +643,12 @@ export default {
                     enum_value: JSON.stringify(this.orgData),
                 })
                 .then(res => {
-                    this.$message.success(`保存成功`);
-                });
+                if (res.data.code == 0) {
+                    this.$message.success('保存成功');
+                } else {
+                    this.$message.error('保存失败');
+                }    
+            });
         },
         appendOrg(data) {
             const newChild = { id: this.orgId++, label: '未命名部门', value: '未命名部门', isEdit: true,};
@@ -679,6 +682,7 @@ export default {
         },
         onSubmit() {
             console.log("onSubmit")
+            this.addUserVisible = false;
             var department = this.form.user_role1.department;
             var role = this.form.user_role1.role;
             var roleStr1 = this.generateRoleStr(department, role);
@@ -693,9 +697,12 @@ export default {
                 user_phone: this.form.user_phone,
                 user_path: this.form.user_path,
             })
-            .then( (res) => {
-                this.$message.success('提交成功！');
-                this.addUserVisible = false;    
+            .then(res => {
+                if (res.data.code == 0) {
+                    this.$message.success('提交成功');
+                } else {
+                    this.$message.error('提交失败');
+                }    
             })
         },
         onClear() {
@@ -719,7 +726,7 @@ export default {
                     enum_key: 'mutex_role'
                 })
                 .then(res => {
-                    console.log('resdata: ', res.data);
+                    //console.log('resdata: ', res.data);
                     this.mutexRoleObj = res.data;
                     this.mutexRoleData = JSON.parse(this.mutexRoleObj.enum_value);
                 });
