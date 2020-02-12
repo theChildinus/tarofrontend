@@ -39,7 +39,7 @@
                 <el-table-column prop="policy_sub" label="策略规则主体"></el-table-column>
                 <el-table-column prop="policy_obj" label="策略规则资源"></el-table-column>
                 <el-table-column prop="policy_act" label="策略规则动作" width="120"></el-table-column>
-                <el-table-column prop="policy_type" label="策略类型" width="100"></el-table-column>
+                <el-table-column prop="policy_type" label="主体类型" width="100"></el-table-column>
                 <el-table-column prop="policy_ctime" label="添加时间"></el-table-column>
                 <el-table-column label="操作" width="180" align="center">
                     <template slot-scope="scope">
@@ -76,15 +76,15 @@
                     <el-cascader v-model="form.policy_name" :options="policyTreeOpts" 
                     :props="{ checkStrictly: true }" clearable style="width: 100%;" disabled></el-cascader>
                 </el-form-item>
-                <el-form-item label="策略类型">
+                <el-form-item label="主体类型">
                     <el-radio-group v-model="form.policy_type" disabled>
-                        <el-radio label="IOT策略" value="IOT策略"></el-radio>
-                        <el-radio label="Fabric策略" value="Fabric策略"></el-radio>
+                        <el-radio label="物联网用户" value="物联网用户"></el-radio>
+                        <el-radio label="区块链参与者" value="区块链参与者"></el-radio>
                     </el-radio-group>
                 </el-form-item>
                 <el-form-item label="策略规则主体">
                     <el-row type="flex" class="row-bg" :gutter="10">
-                        <el-col v-if="form.policy_type=='IOT策略'">
+                        <el-col v-if="form.policy_type=='物联网用户'">
                             <el-cascader v-model="form.policy_sub.department" :options="departmentOpts" 
                             :props="{ checkStrictly: true }" clearable :show-all-levels="false" placeholder="请选择部门">
                             </el-cascader>
@@ -94,7 +94,7 @@
                             :props="{ checkStrictly: true }" clearable :show-all-levels="false" placeholder="请选择组织">
                             </el-cascader>
                         </el-col>
-                        <el-col v-if="form.policy_type=='IOT策略'">
+                        <el-col v-if="form.policy_type=='物联网用户'">
                             <el-select v-model="form.policy_sub.role" placeholder="请选择用户或角色">
                             <el-option v-for="(item, idx) in userRoleList" :key="idx" :label="item.label" :value="item.value"></el-option>
                             </el-select>
@@ -142,15 +142,15 @@
                     <el-cascader v-model="form.policy_name" :options="policyTreeOpts" 
                     :props="{ checkStrictly: true }" clearable style="width: 100%;"></el-cascader>
                 </el-form-item>
-                <el-form-item label="策略类型">
+                <el-form-item label="主体类型">
                     <el-radio-group v-model="form.policy_type">
-                        <el-radio label="IOT策略" value="IOT策略"></el-radio>
-                        <el-radio label="Fabric策略" value="Fabric策略"></el-radio>
+                        <el-radio label="物联网用户" value="物联网用户"></el-radio>
+                        <el-radio label="区块链参与者" value="区块链参与者"></el-radio>
                     </el-radio-group>
                 </el-form-item>
                 <el-form-item label="策略规则主体">
                     <el-row type="flex" class="row-bg" :gutter="10">
-                        <el-col v-if="form.policy_type=='IOT策略'">
+                        <el-col v-if="form.policy_type=='物联网用户'">
                             <el-cascader v-model="form.policy_sub.department" :options="departmentOpts" 
                             :props="{ checkStrictly: true }" clearable :show-all-levels="false" placeholder="请选择部门">
                             </el-cascader>
@@ -160,7 +160,7 @@
                             :props="{ checkStrictly: true }" clearable :show-all-levels="false" placeholder="请选择组织">
                             </el-cascader>
                         </el-col>
-                        <el-col v-if="form.policy_type=='IOT策略'">
+                        <el-col v-if="form.policy_type=='物联网用户'">
                             <el-select v-model="form.policy_sub.role" placeholder="请选择用户或角色">
                             <el-option v-for="(item, idx) in userRoleList" :key="idx" :label="item.label" :value="item.value"></el-option>
                             </el-select>
@@ -384,7 +384,7 @@ export default {
             var poArr = data.policy_obj.split("/");
             this.form.policy_name = pnArr;
             this.form.policy_obj = poArr;
-            if (data.policy_type == 'IOT策略') {
+            if (data.policy_type == '物联网用户') {
                 this.form.policy_sub.role = psArr[psArr.length - 1];
                 psArr.pop();
                 this.form.policy_sub.department = psArr;
@@ -401,49 +401,9 @@ export default {
         // 保存编辑
         saveEdit() {
             this.editVisible = false;
-            var array = this.form.policy_name;
-            var policyNameStr = "";
-            for (var i = 0; i < array.length; i++) {
-                policyNameStr += array[i];
-                if (i != array.length - 1) {
-                    policyNameStr += "#";
-                }
-            }
-            var array = [];
-            if (this.form.policy_type == 'IOT策略') {
-                array = this.form.policy_sub.department;
-            } else {
-                array = this.form.policy_sub.affiliation;
-            }
-            var policySubStr = "";
-            if (array != undefined && array.length >= 1) {
-                for (var i = 0; i < array.length; i++) {
-                    policySubStr += array[i];
-                    if (i != array.length - 1) {
-                        policySubStr += "/";
-                    }
-                }
-                if (this.form.policy_type == 'IOT策略') {
-                    policySubStr = policySubStr + "/" + this.form.policy_sub.role;
-                } else {
-                    policySubStr = policySubStr + "/" + this.form.policy_sub.identity;
-                }
-            } else {
-                if (this.form.policy_type == 'IOT策略') {
-                    policySubStr = this.form.policy_sub.role;
-                } else {
-                    policySubStr = this.form.policy_sub.identity;
-                }
-            }
-
-            var array = this.form.policy_obj;
-            var policyObjStr = "";
-            for (var i = 0; i < array.length; i++) {
-                policyObjStr += array[i];
-                if (i != array.length - 1) {
-                    policyObjStr += "/";
-                }
-            }
+            var policyNameStr = this.getPolicyNameStr();
+            var policySubStr = this.getPolicySubStr();
+            var policyObjStr = this.getPolicyObjStr();
             this.$axios
                 .post('api/policy/update', {
                     policy_id: this.form.policy_id,
@@ -523,48 +483,9 @@ export default {
         onSubmit() {
             this.addPolicyRuleVisible = false;
             console.log("onSubmit")
-            var array = this.form.policy_name;
-            var policyNameStr = "";
-            for (var i = 0; i < array.length; i++) {
-                policyNameStr += array[i];
-                if (i != array.length - 1) {
-                    policyNameStr += "#";
-                }
-            }
-            var array = [];
-            if (this.form.policy_type == 'IOT策略') {
-                array = this.form.policy_sub.department;
-            } else {
-                array = this.form.policy_sub.affiliation;
-            }
-            var policySubStr = "";
-            if (array != undefined && array.length >= 1) {
-                for (var i = 0; i < array.length; i++) {
-                    policySubStr += array[i];
-                    if (i != array.length - 1) {
-                        policySubStr += "/";
-                    }
-                }
-                if (this.form.policy_type == 'IOT策略') {
-                    policySubStr = policySubStr + "/" + this.form.policy_sub.role;
-                } else {
-                    policySubStr = policySubStr + "/" + this.form.policy_sub.identity;
-                }
-            } else {
-                if (this.form.policy_type == 'IOT策略') {
-                    policySubStr = this.form.policy_sub.role;
-                } else {
-                    policySubStr = this.form.policy_sub.identity;
-                }
-            }
-            var array = this.form.policy_obj;
-            var policyObjStr = "";
-            for (var i = 0; i < array.length; i++) {
-                policyObjStr += array[i];
-                if (i != array.length - 1) {
-                    policyObjStr += "/";
-                }
-            }
+            var policyNameStr = this.getPolicyNameStr();
+            var policySubStr = this.getPolicySubStr();
+            var policyObjStr = this.getPolicyObjStr();
             this.$axios.post('api/policy/create', {
                 policy_name: policyNameStr,
                 policy_sub: policySubStr,
@@ -808,6 +729,59 @@ export default {
                     this.$message.success(`保存成功`);
                 });
         },
+
+        /*#################################### 通用函数 ####################################*/
+        getPolicyNameStr() {
+            var array = this.form.policy_name;
+            var policyNameStr = "";
+            for (var i = 0; i < array.length; i++) {
+                policyNameStr += array[i];
+                if (i != array.length - 1) {
+                    policyNameStr += "#";
+                }
+            }
+            return policyNameStr;
+        },
+        getPolicySubStr() {
+            var array = [];
+            if (this.form.policy_type == '物联网用户') {
+                array = this.form.policy_sub.department;
+            } else {
+                array = this.form.policy_sub.affiliation;
+            }
+            var policySubStr = "";
+            if (array != undefined && array.length >= 1) {
+                for (var i = 0; i < array.length; i++) {
+                    policySubStr += array[i];
+                    if (i != array.length - 1) {
+                        policySubStr += "/";
+                    }
+                }
+                if (this.form.policy_type == '物联网用户') {
+                    policySubStr = policySubStr + "/" + this.form.policy_sub.role;
+                } else {
+                    policySubStr = policySubStr + "/" + this.form.policy_sub.identity;
+                }
+            } else {
+                if (this.form.policy_type == '物联网用户') {
+                    policySubStr = this.form.policy_sub.role;
+                } else {
+                    policySubStr = this.form.policy_sub.identity;
+                }
+            }
+            return policySubStr;
+        },
+        getPolicyObjStr() {
+            var array = this.form.policy_obj;
+            var policyObjStr = "";
+            for (var i = 0; i < array.length; i++) {
+                policyObjStr += array[i];
+                if (i != array.length - 1) {
+                    policyObjStr += "/";
+                }
+            }
+            return policyObjStr;
+        }
     }
 };
 </script>
