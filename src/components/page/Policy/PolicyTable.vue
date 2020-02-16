@@ -90,7 +90,7 @@
                             </el-cascader>
                         </el-col>
                         <el-col v-else>
-                            <el-cascader v-model="form.policy_sub.affiliation" :options="affiliationOpts" 
+                            <el-cascader v-model="form.policy_sub.department" :options="affiliationOpts" 
                             :props="{ checkStrictly: true }" clearable :show-all-levels="false" placeholder="请选择组织">
                             </el-cascader>
                         </el-col>
@@ -100,7 +100,7 @@
                             </el-select>
                         </el-col>
                         <el-col v-else>
-                            <el-select v-model="form.policy_sub.identity" placeholder="请选择参与者">
+                            <el-select v-model="form.policy_sub.role" placeholder="请选择参与者">
                             <el-option v-for="(item, idx) in identityNamesList" :key="idx" :label="item.label" :value="item.value"></el-option>
                             </el-select>
                         </el-col>
@@ -137,18 +137,18 @@
 
         <!-- 添加策略规则弹出框 -->
         <el-dialog title="添加策略规则" :visible.sync="addPolicyRuleVisible" width="30%">
-            <el-form ref="form" :model="form" label-width="120px">
-                <el-form-item label="策略名称">
+            <el-form ref="form" :model="form" :rules="rules" label-width="120px">
+                <el-form-item label="策略名称" prop="policy_name">
                     <el-cascader v-model="form.policy_name" :options="policyTreeOpts" 
                     :props="{ checkStrictly: true }" clearable style="width: 100%;"></el-cascader>
                 </el-form-item>
-                <el-form-item label="主体类型">
+                <el-form-item label="主体类型" prop="policy_type">
                     <el-radio-group v-model="form.policy_type">
                         <el-radio label="物联网用户" value="物联网用户"></el-radio>
                         <el-radio label="区块链参与者" value="区块链参与者"></el-radio>
                     </el-radio-group>
                 </el-form-item>
-                <el-form-item label="策略规则主体">
+                <el-form-item label="策略规则主体" prop="policy_sub">
                     <el-row type="flex" class="row-bg" :gutter="10">
                         <el-col v-if="form.policy_type=='物联网用户'">
                             <el-cascader v-model="form.policy_sub.department" :options="departmentOpts" 
@@ -156,7 +156,7 @@
                             </el-cascader>
                         </el-col>
                         <el-col v-else>
-                            <el-cascader v-model="form.policy_sub.affiliation" :options="affiliationOpts" 
+                            <el-cascader v-model="form.policy_sub.department" :options="affiliationOpts" 
                             :props="{ checkStrictly: true }" clearable :show-all-levels="false" placeholder="请选择组织">
                             </el-cascader>
                         </el-col>
@@ -166,24 +166,24 @@
                             </el-select>
                         </el-col>
                         <el-col v-else>
-                            <el-select v-model="form.policy_sub.identity" placeholder="请选择参与者">
+                            <el-select v-model="form.policy_sub.role" placeholder="请选择参与者">
                             <el-option v-for="(item, idx) in identityNamesList" :key="idx" :label="item.label" :value="item.value"></el-option>
                             </el-select>
                         </el-col>
                     </el-row>
                 </el-form-item>
-                <el-form-item label="策略规则资源">
+                <el-form-item label="策略规则资源" prop="policy_obj">
                     <el-cascader v-model="form.policy_obj" :options="policyResourceOpts" 
                     :props="{ checkStrictly: true }" clearable style="width: 100%;"></el-cascader>
                 </el-form-item>
-                <el-form-item label="策略规则动作">
+                <el-form-item label="策略规则动作" prop="policy_act">
                     <el-select v-model="form.policy_act" placeholder="请选择">
                     <el-option v-for="item in enumValueList" :key="item" :label="item" :value="item"></el-option>
                     </el-select>
                 </el-form-item>
                 <el-form-item>
-                    <el-button type="primary" @click="onSubmit">表单提交</el-button>
-                    <el-button type="danger" @click="onClear">清空</el-button>
+                    <el-button type="primary" @click="onSubmit('form')">表单提交</el-button>
+                    <el-button type="danger" @click="onClear('form')">清空</el-button>
                 </el-form-item>
             </el-form>
         </el-dialog>
@@ -213,7 +213,7 @@
 
         <!-- 管理策略规则资源弹出框 -->
         <el-dialog title="管理策略规则资源" :visible.sync="editPolicyResVisible" width="30%">
-            <el-tree :data="policyResourceData" node-key="id" default-expand-all :expand-on-click-node="false">
+            <el-tree :data="policyResourceData" node-key="id" :default-expand-all="false" :expand-on-click-node="false">
                 <span class="custom-tree-node" slot-scope="{ node, data }">
                     <span v-if="node.data.isEdit==true">
                         <el-input size="mini" v-model="node.data.label" @blur="saveResNode(node)"></el-input>
@@ -288,8 +288,6 @@ export default {
                 policy_sub: {
                     department:[],
                     role:"",
-                    affiliation:[],
-                    identity:"",
                 },
             },
             editPolicyResVisible: false,
@@ -298,7 +296,28 @@ export default {
             policyResourceData: [],
             policyResourceOpts: [],
             idx: -1,
-            id: -1
+            id: -1,
+            rules: {
+                policy_name: [
+                    { required: true, message: '请选择策略名称', trigger: 'change' },
+                ],
+                policy_type: [
+                    { required: true, message: '请选择策略主体类型', trigger: 'change' },
+                ],
+                policy_sub: [{   
+                    type: 'object', required: true, trigger: 'change',
+                    fields: {
+                        department: {type: 'array', required: true, message: '请选择组织', trigger: 'blur'},
+                        role: {required: true, message: '请选择用户或角色', trigger: 'blur'}
+                    }
+                }],
+                policy_obj: [
+                    { required: true, message: '请选择策略规则资源', trigger: 'change' },
+                ],
+                policy_act: [
+                    { required: true, message: '请选择策略规则动作', trigger: 'change' },
+                ],
+            }
         };
     },
     created() {
@@ -384,15 +403,9 @@ export default {
             var poArr = data.policy_obj.split("/");
             this.form.policy_name = pnArr;
             this.form.policy_obj = poArr;
-            if (data.policy_type == '物联网用户') {
-                this.form.policy_sub.role = psArr[psArr.length - 1];
-                psArr.pop();
-                this.form.policy_sub.department = psArr;
-            } else {
-                this.form.policy_sub.identity = psArr[psArr.length - 1];
-                psArr.pop();
-                this.form.policy_sub.affiliation = psArr;
-            }
+            this.form.policy_sub.role = psArr[psArr.length - 1];
+            psArr.pop();
+            this.form.policy_sub.department = psArr;
             this.form.policy_act = row.policy_act;
             this.form.policy_id = row.policy_id;
             this.form.policy_type = row.policy_type;
@@ -473,39 +486,43 @@ export default {
                 policy_sub: {
                     department:[],
                     role:"",
-                    affiliation:[],
-                    identity:"",
                 },
             };
             this.addPolicyRuleVisible = true;
         },
         // 提交添加策略规则
-        onSubmit() {
-            this.addPolicyRuleVisible = false;
-            console.log("onSubmit")
-            var policyNameStr = this.getPolicyNameStr();
-            var policySubStr = this.getPolicySubStr();
-            var policyObjStr = this.getPolicyObjStr();
-            this.$axios.post('api/policy/create', {
-                policy_name: policyNameStr,
-                policy_sub: policySubStr,
-                policy_obj: policyObjStr,
-                policy_act: this.form.policy_act,
-                policy_type: this.form.policy_type,
-            })
-            .then( (res) => {
-                this.$message.success('提交成功！');    
-            })
+        onSubmit(formName) {
+            this.$refs[formName].validate((valid) => {
+                if (valid) {
+                console.log('submit');
+                var policyNameStr = this.getPolicyNameStr();
+                var policySubStr = this.getPolicySubStr();
+                var policyObjStr = this.getPolicyObjStr();
+                this.$axios.post('api/policy/create', {
+                    policy_name: policyNameStr,
+                    policy_sub: policySubStr,
+                    policy_obj: policyObjStr,
+                    policy_act: this.form.policy_act,
+                    policy_type: this.form.policy_type,
+                })
+                .then( (res) => {
+                    this.addPolicyRuleVisible = false;
+                    this.$message.success('提交成功！');    
+                })
+                } else {
+                    console.log('error submit!!');
+                    return false
+                }
+            });
         },
-        onClear() {
+        onClear(formName) {
             this.form = {
                 policy_sub: {
                     department:[],
                     role:"",
-                    affiliation:[],
-                    identity:"",
                 },
             };
+            this.$refs[formName].resetFields();
         },
         /*#################################### 策略规则主体 ####################################*/
         // 获取所有用户名和角色
@@ -544,7 +561,6 @@ export default {
                 .then(res => {
                     //console.log('resdata: ', res.data);
                     this.identityNamesList = res.data.list;
-                    console.log("identityNamesList: ", this.identityNamesList);
                 });
         },
         /*#################################### 策略规则资源 ####################################*/
@@ -744,11 +760,7 @@ export default {
         },
         getPolicySubStr() {
             var array = [];
-            if (this.form.policy_type == '物联网用户') {
-                array = this.form.policy_sub.department;
-            } else {
-                array = this.form.policy_sub.affiliation;
-            }
+            array = this.form.policy_sub.department;
             var policySubStr = "";
             if (array != undefined && array.length >= 1) {
                 for (var i = 0; i < array.length; i++) {
@@ -757,17 +769,9 @@ export default {
                         policySubStr += "/";
                     }
                 }
-                if (this.form.policy_type == '物联网用户') {
-                    policySubStr = policySubStr + "/" + this.form.policy_sub.role;
-                } else {
-                    policySubStr = policySubStr + "/" + this.form.policy_sub.identity;
-                }
+                policySubStr = policySubStr + "/" + this.form.policy_sub.role;
             } else {
-                if (this.form.policy_type == '物联网用户') {
-                    policySubStr = this.form.policy_sub.role;
-                } else {
-                    policySubStr = this.form.policy_sub.identity;
-                }
+                policySubStr = this.form.policy_sub.role
             }
             return policySubStr;
         },
