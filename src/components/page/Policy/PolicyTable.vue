@@ -401,14 +401,15 @@ export default {
             var pnArr = data.policy_name.split("#");
             var psArr = data.policy_sub.split("/");
             var poArr = data.policy_obj.split("/");
-            this.form.policy_name = pnArr;
-            this.form.policy_obj = poArr;
-            this.form.policy_sub.role = psArr[psArr.length - 1];
+            this.$set(this.form, 'policy_name', pnArr);
+            this.$set(this.form, 'policy_obj', poArr);
+            this.$set(this.form, 'policy_sub', {});
+            this.$set(this.form.policy_sub, 'role', psArr[psArr.length - 1]);
             psArr.pop();
-            this.form.policy_sub.department = psArr;
-            this.form.policy_act = row.policy_act;
-            this.form.policy_id = row.policy_id;
-            this.form.policy_type = row.policy_type;
+            this.$set(this.form.policy_sub, 'department', psArr);
+            this.$set(this.form, 'policy_act', data.policy_act);
+            this.$set(this.form, 'policy_id', data.policy_id);
+            this.$set(this.form, 'policy_type', data.policy_type);
             this.editVisible = true;
         },
         // 保存编辑
@@ -507,7 +508,11 @@ export default {
                 })
                 .then( (res) => {
                     this.addPolicyRuleVisible = false;
-                    this.$message.success('提交成功！');    
+                    if (res.data.code == 0) {
+                        this.$message.success('提交成功！'); 
+                    } else {
+                        this.$message.error('提交失败，策略可能已存在！'); 
+                    }   
                 })
                 } else {
                     console.log('error submit!!');
@@ -597,6 +602,7 @@ export default {
                     enum_value: JSON.stringify(this.policyResourceData),
                 })
                 .then(res => {
+                    this.getPolicyRes();
                     this.$message.success(`保存成功`);
                 });
         },
@@ -664,6 +670,7 @@ export default {
                     enum_value: JSON.stringify(this.policyTreeData),
                 })
                 .then(res => {
+                    this.getPolicyTreeData();
                     this.$message.success(`保存成功`);
                 });
         },

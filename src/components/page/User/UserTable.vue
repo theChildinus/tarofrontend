@@ -114,7 +114,7 @@
         <el-dialog title="编辑" :visible.sync="editVisible" width="30%">
             <el-form ref="form" :model="form" label-width="140px">
                 <el-form-item label="用户名">
-                    <el-input v-model="form.user_name"></el-input>
+                    <el-input v-model="form.user_name" disabled></el-input>
                 </el-form-item>
                 <el-form-item label="用户角色1">
                     <el-row type="flex" class="row-bg" :gutter="10">
@@ -334,7 +334,7 @@ export default {
                 user_role2:{
                     department: [],
                     role:"",
-                }
+                },
             },
             roleTagList: [],
             idx: -1,
@@ -488,26 +488,28 @@ export default {
         },
         // 编辑操作
         handleEdit(index, row) {
+            console.log("row: ", row)
             this.idx = index;
             var data = row;
-            this.onClear();
             var urs = data.user_role.split("#");
             var ur1Arr = urs[0].split("/");
-            this.form.user_role1.role = ur1Arr[ur1Arr.length - 1];
+            this.$set(this.form, 'user_role1', {});
+            this.$set(this.form.user_role1, 'role', ur1Arr[ur1Arr.length - 1]);
             ur1Arr.pop();
-            this.form.user_role1.department = ur1Arr;
+            this.$set(this.form.user_role1, 'department', ur1Arr);
             if (urs.length == 2) {
                 var ur2Arr = urs[1].split("/");
-                this.form.user_role2.role = ur2Arr[ur2Arr.length - 1];
+                this.$set(this.form, 'user_role2', {});
+                this.$set(this.form.user_role2, 'role', ur2Arr[ur2Arr.length - 1]);
                 ur2Arr.pop();
-                this.form.user_role2.department = ur2Arr;
+                this.$set(this.form.user_role2, 'department', ur2Arr);
             }
-            this.form.user_id = data.user_id,
-            this.form.user_name = data.user_name,
-            this.form.user_address = data.user_address,
-            this.form.user_email = data.user_email,
-            this.form.user_phone = data.user_phone,
-            this.form.user_path = data.user_path,
+            this.$set(this.form, 'user_id', data.user_id);
+            this.$set(this.form, 'user_name', data.user_name);
+            this.$set(this.form, 'user_address', data.user_address);
+            this.$set(this.form, 'user_email', data.user_email);
+            this.$set(this.form, 'user_phone', data.user_phone);
+            this.$set(this.form, 'user_path', data.user_path);
             this.editVisible = true;
         },
         // 保存编辑
@@ -645,6 +647,7 @@ export default {
                 .then(res => {
                 if (res.data.code == 0) {
                     this.$message.success('保存成功');
+                    this.getOrgData();
                 } else {
                     this.$message.error('保存失败');
                 }    

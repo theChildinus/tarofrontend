@@ -74,7 +74,7 @@ export default {
                 {
                     icon: 'el-icon-key',
                     index: 'policytable',
-                    title: '策略管理'
+                    title: '资源管理和策略管理'
                 },
             ]
         };

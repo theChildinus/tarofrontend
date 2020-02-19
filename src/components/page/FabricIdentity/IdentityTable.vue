@@ -119,7 +119,7 @@
         <el-dialog title="编辑" :visible.sync="editVisible" width="30%">
             <el-form ref="form" :model="form" label-width="140px">
                 <el-form-item label="身份名称">
-                    <el-input v-model="form.identity_name"></el-input>
+                    <el-input v-model="form.identity_name" disabled></el-input>
                 </el-form-item>
                 <el-form-item label="身份密码">
                     <el-input v-model="form.identity_secret"></el-input>
@@ -128,6 +128,7 @@
                     <el-radio disabled v-model="form.identity_type" label="client">client</el-radio>
                     <el-radio disabled v-model="form.identity_type" label="peer">peer</el-radio>
                     <el-radio disabled v-model="form.identity_type" label="order">order</el-radio>
+                    <el-radio disabled v-model="form.identity_type" label="user">user</el-radio>
                 </el-form-item>
                 <el-form-item label="身份从属">
                     <el-cascader v-model="form.identity_affiliation" :options="orgOpts" 
@@ -156,7 +157,7 @@
         </el-dialog>
 
         <!-- 添加参与者身份信息弹出框 -->
-        <el-dialog title="添加参与者身份信息" :visible.sync="addIdentityVisible" width="30%">
+        <el-dialog title="添加参与者身份信息" :visible.sync="addIdentityVisible" width="31%">
             <el-form ref="form" :model="form" label-width="140px">
                 <el-form-item label="身份名称">
                 <el-input v-model="form.identity_name"></el-input>
@@ -169,6 +170,7 @@
                         <el-radio label="client"></el-radio>
                         <el-radio label="peer"></el-radio>
                         <el-radio label="order"></el-radio>
+                        <el-radio label="user"></el-radio>
                     </el-radio-group>
                 </el-form-item>
                 <el-form-item label="身份从属">
@@ -336,14 +338,13 @@ export default {
                     orgStr += "/";
                 }
             }
-            this.form.identity_affiliation = orgStr;
             this.$axios
                 .post('api/identity/update', {
                     identity_id: this.form.identity_id,
                     identity_name: this.form.identity_name,
                     identity_secret: this.form.identity_secret,
                     identity_type: this.form.identity_type,
-                    identity_affiliation: this.form.identity_affiliation,
+                    identity_affiliation: orgStr,
                     identity_attrs: this.form.identity_attrs,
                     identity_ip: this.form.identity_ip,
                     identity_user: this.form.identity_user,
@@ -523,6 +524,7 @@ export default {
                 })
                 .then(res => {
                     this.$message.success(`保存成功`);
+                    this.getOrgData();
                 });
         },
         appendOrg(data) {
