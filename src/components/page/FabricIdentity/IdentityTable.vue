@@ -325,6 +325,7 @@ export default {
             this.editVisible = true;
         },
         handleAddIdentity() {
+            this.form = {};
             this.addIdentityVisible = true;
         },
         // 保存编辑
@@ -388,7 +389,7 @@ export default {
                 .catch(() => {}); 
         },
         handleEnroll(index, row) {
-            this.$confirm('确定要登录 ' + row.identity_name + ' 吗？', '提示', {
+            this.$confirm('确定要登记 ' + row.identity_name + ' 吗？', '提示', {
                 type: 'warning'
             })
             .then(() => {
@@ -403,9 +404,9 @@ export default {
                 .then(res => {
                     console.log(res.data);
                     if (res.data.code == 0) {
-                        this.$message.success('登录 ' + row.identity_name + ' 成功，请刷新页面');
+                        this.$message.success('登记 ' + row.identity_name + ' 成功，请刷新页面');
                     } else {
-                        this.$message.error('登录 ' + row.identity_name + ' 失败或已登录');
+                        this.$message.error('登记 ' + row.identity_name + ' 失败或已登记');
                     }
                 });
             })
@@ -491,9 +492,6 @@ export default {
         handleOrgEdit() {
             this.editOrgVisible = true;
             this.getOrgData();
-        },
-        handleAddUser() {
-            this.addUserVisible = true;
         },
         // 从后台获取组织结构信息
         getOrgData() {
