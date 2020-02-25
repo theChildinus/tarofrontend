@@ -15,7 +15,7 @@
                     class="handle-del mr10"
                     @click="delAllSelection"
                 >批量删除</el-button> -->
-                <el-input v-model="search.searchSub" placeholder="策略规则主体" class="handle-input mr10"></el-input>
+                <el-input v-model="search.searchSub" placeholder="策略名称" class="handle-input mr10"></el-input>
                 <el-button type="primary" icon="el-icon-search" @click="handleSearch">搜索</el-button>
                 <el-button type="primary" icon="el-icon-refresh" @click="handleRefresh">刷新</el-button>
                 <el-button type="danger" icon="el-icon-delete" @click="clearSelection">清空</el-button>

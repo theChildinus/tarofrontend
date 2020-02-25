@@ -123,7 +123,7 @@
                         :props="{ checkStrictly: true }" clearable style="width: 100%;"></el-cascader>
                     </el-col>
                     <el-col>
-                        <el-select v-model="form.user_role1.role" placeholder="用户角色" class="handle-select mr10">
+                        <el-select v-model="form.user_role1.role" placeholder="用户角色" clearable class="handle-select mr10">
                         <el-option v-for="item in enumValueList" :key="item" :label="item" :value="item"></el-option>
                         </el-select>
                     </el-col>
@@ -136,7 +136,7 @@
                         :props="{ checkStrictly: true }" clearable style="width: 100%;"></el-cascader>
                     </el-col>
                     <el-col>
-                        <el-select v-model="form.user_role2.role" placeholder="用户角色" class="handle-select mr10">
+                        <el-select v-model="form.user_role2.role" placeholder="用户角色" clearable class="handle-select mr10">
                         <el-option v-for="item in enumValueList" :key="item" :label="item" :value="item"></el-option>
                         </el-select>
                     </el-col>
@@ -205,7 +205,7 @@
                         :props="{ checkStrictly: true }" clearable style="width: 100%;"></el-cascader>
                     </el-col>
                     <el-col>
-                        <el-select v-model="form.user_role1.role" placeholder="用户角色" class="handle-select mr10">
+                        <el-select v-model="form.user_role1.role" placeholder="用户角色" clearable class="handle-select mr10">
                         <el-option v-for="item in enumValueList" :key="item" :label="item" :value="item"></el-option>
                         </el-select>
                     </el-col>
@@ -218,7 +218,7 @@
                         :props="{ checkStrictly: true }" clearable style="width: 100%;"></el-cascader>
                     </el-col>
                     <el-col>
-                        <el-select v-model="form.user_role2.role" placeholder="用户角色" class="handle-select mr10">
+                        <el-select v-model="form.user_role2.role" placeholder="用户角色" clearable class="handle-select mr10">
                         <el-option v-for="item in enumValueList" :key="item" :label="item" :value="item"></el-option>
                         </el-select>
                     </el-col>
@@ -677,8 +677,8 @@ export default {
         handleAddTop() {
             this.orgData.push({
             id: ++this.orgId,
-            label: '顶级部门',
-            value: '顶级部门',
+            label: '未命名部门',
+            value: '未命名部门',
             isEdit: true,
             children: []
             })
