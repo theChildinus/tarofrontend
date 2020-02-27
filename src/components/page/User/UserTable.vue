@@ -194,11 +194,11 @@
 
          <!-- 添加用户身份信息弹出框 -->
         <el-dialog title="添加用户身份信息" :visible.sync="addUserVisible" width="30%">
-            <el-form ref="form" :model="form" label-width="140px">
-                <el-form-item label="用户名">
+            <el-form ref="form" :model="form" :rules="rules" label-width="140px">
+                <el-form-item label="用户名" prop="user_name">
                     <el-input v-model="form.user_name"></el-input>
                 </el-form-item>
-                <el-form-item label="用户角色1">
+                <el-form-item label="用户角色1" prop="user_role1">
                     <el-row type="flex" class="row-bg" :gutter="10">
                     <el-col>
                         <el-cascader v-model="form.user_role1.department" :options="orgOpts" 
@@ -230,15 +230,15 @@
                 <el-form-item label="电子邮箱">
                     <el-input v-model="form.user_email"></el-input>
                 </el-form-item>
-                <el-form-item label="联系电话">
+                <el-form-item label="联系电话" prop="user_phone">
                     <el-input v-model="form.user_phone"></el-input>
                 </el-form-item>
-                <el-form-item label="安全存储设备路径">
+                <el-form-item label="安全存储设备路径" prop="user_path">
                     <el-input v-model="form.user_path" placeholder="以 / 或 \ 结尾"></el-input>
                 </el-form-item>
                 <el-form-item>
-                    <el-button type="primary" @click="onSubmit">表单提交</el-button>
-                    <el-button type="danger" @click="onClear">清空</el-button>
+                    <el-button type="primary" @click="onSubmit('form')">表单提交</el-button>
+                    <el-button type="danger" @click="onClear('form')">清空</el-button>
                 </el-form-item>
             </el-form>
         </el-dialog>
@@ -343,6 +343,24 @@ export default {
             orgObj: {},
             orgData: [],
             orgOpts: [],
+            rules:{
+                user_name: [
+                    { required: true, message: '用户名不为空', trigger: 'change' },
+                ],
+                user_role1: [{   
+                    type: 'object', required: true, trigger: 'change',
+                    fields: {
+                        department: {type: 'array', required: true, message: '组织不为空', trigger: 'blur'},
+                        role: {required: true, message: '角色不为空', trigger: 'blur'}
+                    }
+                }],
+                user_phone: [
+                    { required: true, message: '联系电话不为空', trigger: 'change' },
+                ],
+                user_path: [
+                    { required: true, message: '证书存储路径不为空', trigger: 'change' },
+                ],
+            },
         };
     },
     created() {
@@ -534,10 +552,10 @@ export default {
                 .then(res => {
                     if (res.data.code == 0) {
                         this.$message.success(`修改第 ${this.idx + 1} 行成功`);
+                        this.getData();
                     } else {
                         this.$message.error(`修改第 ${this.idx + 1} 行失败`);
                     }
-                    this.getData();
                 });
 
             this.$set(this.tableData, this.idx, this.form);
@@ -616,7 +634,7 @@ export default {
         },
         handleAddUser() {
             this.addUserVisible = true;
-            this.onClear();
+            this.onClear("");
         },
         // 从后台获取组织结构信息
         getOrgData() {
@@ -683,32 +701,41 @@ export default {
             children: []
             })
         },
-        onSubmit() {
-            console.log("onSubmit")
-            this.addUserVisible = false;
-            var department = this.form.user_role1.department;
-            var role = this.form.user_role1.role;
-            var roleStr1 = this.generateRoleStr(department, role);
-            department = this.form.user_role2.department;
-            role = this.form.user_role2.role;
-            var roleStr2 = this.generateRoleStr(department, role);
-            this.$axios.post('api/user/create', {
-                user_name: this.form.user_name,
-                user_role: roleStr1 + "#" + roleStr2,
-                user_address: this.form.user_address,
-                user_email: this.form.user_email,
-                user_phone: this.form.user_phone,
-                user_path: this.form.user_path,
-            })
-            .then(res => {
-                if (res.data.code == 0) {
-                    this.$message.success('提交成功');
-                } else {
-                    this.$message.error('提交失败');
-                }    
-            })
+        onSubmit(formName) {
+            this.$refs[formName].validate((valid) => {
+            if (valid) {
+                console.log("onSubmit")
+                this.addUserVisible = false;
+                var department = this.form.user_role1.department;
+                var role = this.form.user_role1.role;
+                var roleStr1 = this.generateRoleStr(department, role);
+                department = this.form.user_role2.department;
+                role = this.form.user_role2.role;
+                var roleStr2 = this.generateRoleStr(department, role);
+                this.$axios.post('api/user/create', {
+                    user_name: this.form.user_name,
+                    user_role: roleStr1 + "#" + roleStr2,
+                    user_address: this.form.user_address,
+                    user_email: this.form.user_email,
+                    user_phone: this.form.user_phone,
+                    user_path: this.form.user_path,
+                })
+                .then(res => {
+                    if (res.data.code == 0) {
+                        this.$message.success('提交成功');
+                        this.getData();
+                    } else {
+                        this.$message.error('提交失败');
+                    }    
+                })
+            } else {
+                console.log('error submit!!');
+                return false;
+            }
+            
+            });
         },
-        onClear() {
+        onClear(formName) {
             this.form = {
                 user_role1:{
                     department: [],
@@ -719,6 +746,9 @@ export default {
                     role:"",
                 }
             };
+            if (formName != "") {
+                this.$refs[formName].resetFields();
+            }
         },
         handleMutexRole() {
             this.editMutexRoleVisible = true;
@@ -748,7 +778,7 @@ export default {
         },
         addMutexRole() {
             this.addMutexRoleVisible = true;
-            this.onClear();
+            this.onClear("");
         },
         delMutexRole(index, row) {
             this.mutexRoleData.splice(index, 1);

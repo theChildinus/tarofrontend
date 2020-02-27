@@ -158,14 +158,14 @@
 
         <!-- 添加参与者身份信息弹出框 -->
         <el-dialog title="添加参与者身份信息" :visible.sync="addIdentityVisible" width="31%">
-            <el-form ref="form" :model="form" label-width="140px">
-                <el-form-item label="身份名称">
+            <el-form ref="form" :model="form" :rules="rules" label-width="140px">
+                <el-form-item label="身份名称" prop="identity_name">
                 <el-input v-model="form.identity_name"></el-input>
                 </el-form-item>
-                <el-form-item label="身份密码">
+                <el-form-item label="身份密码" prop="identity_secret">
                     <el-input v-model="form.identity_secret"></el-input>
                 </el-form-item>
-                <el-form-item label="身份类型"> 
+                <el-form-item label="身份类型" prop="identity_type"> 
                     <el-radio-group v-model="form.identity_type">
                         <el-radio label="client"></el-radio>
                         <el-radio label="peer"></el-radio>
@@ -173,28 +173,28 @@
                         <el-radio label="user"></el-radio>
                     </el-radio-group>
                 </el-form-item>
-                <el-form-item label="身份从属">
+                <el-form-item label="身份从属" prop="identity_affiliation">
                     <el-cascader v-model="form.identity_affiliation" :options="orgOpts" 
                     :props="{ checkStrictly: true }" clearable style="width: 100%;"></el-cascader>
                 </el-form-item>
                 <el-form-item label="身份属性">
                     <el-input v-model="form.identity_attrs"></el-input>
                 </el-form-item>
-                <el-form-item label="证书存储地址">
+                <el-form-item label="证书存储地址" prop="identity_ip">
                     <el-input v-model="form.identity_ip"></el-input>
                 </el-form-item>
-                <el-form-item label="参与者主机用户名">
+                <el-form-item label="参与者主机用户名" prop="identity_user">
                     <el-input v-model="form.identity_user"></el-input>
                 </el-form-item>
-                <el-form-item label="参与者主机密码">
+                <el-form-item label="参与者主机密码" prop="identity_pw">
                     <el-input v-model="form.identity_pw"></el-input>
                 </el-form-item>
-                <el-form-item label="参与者主机路径">
+                <el-form-item label="参与者主机路径" prop="identity_path">
                     <el-input v-model="form.identity_path"></el-input>
                 </el-form-item>
                 <el-form-item>
-                    <el-button type="primary" @click="onSubmit">表单提交</el-button>
-                    <el-button type="danger" @click="onClear">清空</el-button>
+                    <el-button type="primary" @click="onSubmit('form')">表单提交</el-button>
+                    <el-button type="danger" @click="onClear('form')">清空</el-button>
                 </el-form-item>
             </el-form>
         </el-dialog>
@@ -241,7 +241,9 @@ export default {
             editVisible: false,
             addIdentityVisible: false,
             pageTotal: 0,
-            form: {},
+            form: {
+                identity_affiliation: [],
+            },
             idx: -1,
             id: -1,
             editOrgVisible: false,
@@ -249,6 +251,42 @@ export default {
             orgObj: {},
             orgData: [],
             orgOpts: [],
+            rules:{
+                identity_name: [
+                    { required: true, message: '参与者名不为空', trigger: 'change' },
+                ],
+                identity_secret: [
+                    { required: true, message: '用户密码不为空', trigger: 'change' },
+                ],
+                identity_type: [
+                    { required: true, message: '参与者类型不为空', trigger: 'change' },
+                ],
+                identity_affiliation: [
+                    { required: true, message: '参与者从属不为空', trigger: 'change' },
+                ],
+                identity_ip: [
+                    { required: true, message: '参与者证书IP地址不为空', trigger: 'change' },
+                    { 
+                        validator: (rule, value, callback) => {
+                        const reg = /^(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])$/;
+                        if (reg.test(value)) {
+                            callback();
+                        } else {
+                            return callback(new Error('输入格式不合法！'));
+                        }}, trigger:'blur' 
+                    },
+                ],
+                identity_user: [
+                    { required: true, message: '参与者主机用户名不为空', trigger: 'change' },
+                ],
+                identity_pw: [
+                    { required: true, message: '参与者主机密码不为空', trigger: 'change' },
+                ],
+                identity_path: [
+                    { required: true, message: '参与者主机路径不为空', trigger: 'change' },
+                ],
+            },
+            
         };
     },
     created() {
@@ -321,24 +359,30 @@ export default {
         // 编辑操作
         handleEdit(index, row) {
             this.idx = index;
-            this.form = row;
+            var data = row;
+            var iaArr = data.identity_affiliation.split("/");
+            this.$set(this.form, 'identity_affiliation', iaArr);
+            this.$set(this.form, 'identity_id', data.identity_id);
+            this.$set(this.form, 'identity_name', data.identity_name);
+            this.$set(this.form, 'identity_secret', data.identity_secret);
+            this.$set(this.form, 'identity_type', data.identity_type);
+            this.$set(this.form, 'identity_attrs', data.identity_attrs);
+            this.$set(this.form, 'identity_ip', data.identity_ip);
+            this.$set(this.form, 'identity_user', data.identity_user);
+            this.$set(this.form, 'identity_pw', data.identity_pw);
+            this.$set(this.form, 'identity_path', data.identity_path);
             this.editVisible = true;
         },
         handleAddIdentity() {
-            this.form = {};
+            this.form = {
+                identity_affiliation: [],
+            };
             this.addIdentityVisible = true;
         },
         // 保存编辑
         saveEdit() {
             this.editVisible = false;
-            var orgStr = "";
-            var array = this.form.identity_affiliation;
-            for (var i = 0; i < array.length; i++) {
-                orgStr += array[i];
-                if (i != array.length - 1) {
-                    orgStr += "/";
-                }
-            }
+            var orgStr = this.genAffiliationStr(this.form.identity_affiliation);
             this.$axios
                 .post('api/identity/update', {
                     identity_id: this.form.identity_id,
@@ -353,7 +397,12 @@ export default {
                     identity_path: this.form.identity_path,
                 })
                 .then(res => {
-                    this.$message.success(`修改第 ${this.idx + 1} 行成功`);
+                    if (res.data.code == 0) {
+                        this.$message.success(`修改第 ${this.idx + 1} 行成功`);
+                        this.getData();
+                    } else {
+                        this.$message.error(`修改第 ${this.idx + 1} 行失败`);
+                    }
                 });
 
             this.$set(this.tableData, this.idx, this.form);
@@ -458,35 +507,40 @@ export default {
             })
             .catch(() => {});
         },
-        onSubmit() {
-            console.log("onSubmit")
-            var orgStr = "";
-            var array = this.form.identity_affiliation;
-            for (var i = 0; i < array.length; i++) {
-                orgStr += array[i];
-                if (i != array.length - 1) {
-                    orgStr += "/";
-                }
+        onSubmit(formName) {
+            this.$refs[formName].validate((valid) => {
+            if (valid) {
+                console.log("onSubmit")
+                var orgStr = this.genAffiliationStr(this.form.identity_affiliation);
+                this.$axios.post('api/identity/create', {
+                    identity_name: this.form.identity_name,
+                    identity_secret: this.form.identity_secret,
+                    identity_type: this.form.identity_type,
+                    identity_affiliation: orgStr,
+                    identity_attrs: this.form.identity_attrs,
+                    identity_ip: this.form.identity_ip,
+                    identity_user: this.form.identity_user,
+                    identity_pw: this.form.identity_pw,
+                    identity_path: this.form.identity_path,
+                })
+                .then( (res) => {
+                    if (res.data.code == 0) {
+                        this.$message.success('提交成功');
+                        this.getData();
+                    } else {
+                        this.$message.error('提交失败');
+                    }  
+                    this.addIdentityVisible = false;
+                })
+            } else {
+                console.log('error submit!!');
+                return false;
             }
-            this.form.identity_affiliation = orgStr;
-            this.$axios.post('api/identity/create', {
-                identity_name: this.form.identity_name,
-                identity_secret: this.form.identity_secret,
-                identity_type: this.form.identity_type,
-                identity_affiliation: this.form.identity_affiliation,
-                identity_attrs: this.form.identity_attrs,
-                identity_ip: this.form.identity_ip,
-                identity_user: this.form.identity_user,
-                identity_pw: this.form.identity_pw,
-                identity_path: this.form.identity_path,
-            })
-            .then( (res) => {
-                this.$message.success('提交成功！');
-                this.addIdentityVisible = false;
-            })
+            });
         },
-        onClear() {
+        onClear(formName) {
             this.form = {};
+            this.$refs[formName].resetFields();
         },
         // 触发组织结构编辑
         handleOrgEdit() {
@@ -555,6 +609,20 @@ export default {
             children: []
             })
         },
+        genAffiliationStr(array) {
+            var orgStr = "";
+            if (array.length == 1) {
+                orgStr = array[0];
+            } else {
+                for (var i = 0; i < array.length; i++) {
+                    orgStr += array[i];
+                    if (i != array.length - 1) {
+                        orgStr += "/";
+                    }
+                }
+            }
+            return orgStr;
+        }
     }
 };
 </script>
