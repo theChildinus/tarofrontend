@@ -23,6 +23,7 @@
                 <el-button type="primary" icon="el-icon-plus" @click="handleAddPolicyRule">添加策略规则</el-button>
                 <el-button type="primary" icon="el-icon-edit" @click="handleEnumEdit">编辑策略规则动作</el-button>
                 <el-button type="primary" icon="el-icon-edit" @click="handleEditPolicyRes">管理策略规则资源</el-button>
+                <el-button type="primary" icon="el-icon-edit" @click="handleParseEPC">从EPC模型导入</el-button>
             </div>
             <el-table
                 :data="tableData"
@@ -249,6 +250,25 @@
                 <el-button type="primary" @click="savePolicyModel">保 存</el-button>
             </span>
         </el-dialog>
+
+        <!-- 从EPC模型导入弹出框 -->
+        <el-dialog title="从EPC模型导入" :visible.sync="parseEpcVisible" width="30%">
+            <el-upload ref="upload" class="upload-demo"
+            accept=".epml, .xml"
+            action="api/policy/executable"
+            :file-list="fileList"
+            :on-change="handleChange"
+            :on-success="onSuccess"
+            :on-error="onError"
+            :auto-upload="false">
+                <el-button type="primary" slot="trigger">选取文件</el-button>
+                <div slot="tip" class="el-upload__tip">请上传.epml格式文件</div>
+            </el-upload>
+            <span slot="footer" class="dialog-footer">
+            <el-button type="success" style="float:up" @click="submitUpload">上传并导入</el-button>
+            <el-button @click="parseEpcVisible=false">取消</el-button>
+            </span>
+        </el-dialog>
     </div>
 </template>
 
@@ -277,6 +297,8 @@ export default {
             editPolicyTreeVisible: false,
             editEnumVisible: false,
             editModelVisible: false,
+            parseEpcVisible: false,
+            fileList: [],
             modelDataList: [],
             modelObj: {},
             policyTreeId: -1,
@@ -607,7 +629,7 @@ export default {
                 });
         },
         appendResNode(data) {
-            const newChild = { id: this.policyTreeId++, label: '未命名资源', value: '未命名资源', isEdit: true,};
+            const newChild = { id: this.policyResourceId++, label: '未命名资源', value: '未命名资源', isEdit: true,};
             if (!data.children) {
                 this.$set(data, 'children', []);
             }
@@ -752,7 +774,42 @@ export default {
                     this.$message.success(`保存成功`);
                 });
         },
-
+        
+        /*#################################### 从EPC模型导入 ####################################*/
+        handleParseEPC() {
+            this.parseEpcVisible = true;
+            this.fileList = [];
+        },
+        onSuccess(res) {
+            //console.log("res: ", res)
+            if (res.code == 0) {
+                this.$alert(res.normsg, '提示', {
+                    confirmButtonText: '确定',
+                    callback: action => { console.log("解析成功")},
+                });
+            } else {
+                this.$alert(res.errmsg, '提示', {
+                    confirmButtonText: '确定',
+                    callback: action => { console.log("解析错误")},
+                });
+            }
+        },
+　　　  onError(res) {
+            this.$alert('上传失败', '提示', {
+            confirmButtonText: '确定',
+            callback: action => { console.log("上传失败") },
+            });
+        },
+        handleChange(file, fileList) {
+            //展示最后一次选择的文件
+            if (fileList.length > 0) {
+                this.fileList = [fileList[fileList.length - 1]];
+            }
+        },
+　　    submitUpload() {
+            console.log("submitUpload");
+            this.$refs.upload.submit();
+        },
         /*#################################### 通用函数 ####################################*/
         getPolicyNameStr() {
             var array = this.form.policy_name;
@@ -797,7 +854,7 @@ export default {
 };
 </script>
 
-<style scoped>
+<style>
 .handle-box {
     margin-bottom: 20px;
 }
@@ -833,5 +890,15 @@ export default {
     justify-content: space-between;
     font-size: 14px;
     padding-right: 8px;
+}
+.el-upload--text {
+    background-color: #fff;
+    border: 0px dashed #d9d9d9;
+    width: 86px;
+    height: 38px;
+    text-align: center;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
 }
 </style>
