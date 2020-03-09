@@ -58,14 +58,14 @@
                 <el-table-column prop="user_email" label="电子邮箱"></el-table-column>
                 <el-table-column prop="user_phone" label="联系方式"></el-table-column>
                 <el-table-column prop="user_path" label="安全存储设备路径"></el-table-column>
-                <el-table-column label="证书状态" align="center">
+                <el-table-column label="证书状态" align="center" width="100">
                     <template slot-scope="scope">
                         <el-tag
                             :type="scope.row.user_status===1?'success':(scope.row.user_status===0?'danger':'')"
                         >{{scope.row.user_status == 1? "已创建":"未创建"}}</el-tag>
                     </template>
                 </el-table-column>
-                <el-table-column label="操作" width="220" align="center">
+                <el-table-column label="操作" width="250" align="center">
                     <template slot-scope="scope">
                         <el-button
                             type="text"
@@ -76,6 +76,11 @@
                         <el-button
                             type="text"
                             icon="el-icon-download"
+                            @click="handleInstall(scope.$index, scope.row)"
+                        >安装证书</el-button>
+                        <el-button
+                            type="text"
+                            icon="el-icon-check"
                             @click="handleDownload(scope.$index, scope.row)"
                         >下载证书</el-button>
                         <el-button
@@ -112,11 +117,11 @@
 
         <!-- 编辑弹出框 -->
         <el-dialog title="编辑" :visible.sync="editVisible" width="30%">
-            <el-form ref="form" :model="form" label-width="140px">
+            <el-form ref="form" :model="form" :rules="rules" label-width="140px">
                 <el-form-item label="用户名">
                     <el-input v-model="form.user_name" disabled></el-input>
                 </el-form-item>
-                <el-form-item label="用户角色1">
+                <el-form-item label="用户角色1" prop="user_role1">
                     <el-row type="flex" class="row-bg" :gutter="10">
                     <el-col>
                         <el-cascader v-model="form.user_role1.department" :options="orgOpts" 
@@ -148,11 +153,11 @@
                 <el-form-item label="电子邮箱">
                     <el-input v-model="form.user_email"></el-input>
                 </el-form-item>
-                <el-form-item label="联系电话">
+                <el-form-item label="联系电话" prop="user_phone">
                     <el-input v-model="form.user_phone"></el-input>
                 </el-form-item>
-                <el-form-item label="安全存储设备路径">
-                    <el-input v-model="form.user_path" placeholder="以 / 或 \ 结尾"></el-input>
+                <el-form-item label="安全存储设备路径" prop="user_path">
+                    <el-input v-model="form.user_path"></el-input>
                 </el-form-item>
             </el-form>
             <span slot="footer" class="dialog-footer">
@@ -234,7 +239,7 @@
                     <el-input v-model="form.user_phone"></el-input>
                 </el-form-item>
                 <el-form-item label="安全存储设备路径" prop="user_path">
-                    <el-input v-model="form.user_path" placeholder="以 / 或 \ 结尾"></el-input>
+                    <el-input v-model="form.user_path"></el-input>
                 </el-form-item>
                 <el-form-item>
                     <el-button type="primary" @click="onSubmit('form')">表单提交</el-button>
@@ -431,6 +436,27 @@ export default {
                 })
                 .catch(() => {});
         },
+        handleInstall(index, row) {
+            this.$confirm('确定要安装用户 ' + row.user_name + ' 的身份证书吗？', '提示', {
+                type: 'warning'
+            })
+            .then(() => {
+                this.$axios
+                .post('api/user/install', {
+                    user_name: row.user_name,
+                    user_path: row.user_path,
+                })
+                .then(res => {
+                    console.log(res.data);
+                    if (res.data.code == 0) {
+                        this.$message.success('安装 ' + row.user_name + ' 身份证书成功');
+                    } else {
+                        this.$message.error('安装 ' + row.user_name + ' 身份证书失败');
+                    }
+                });
+            })
+            .catch(() => {});
+        },
         handleDownload(index, row) {
             this.$axios({
                 method: 'post',
@@ -483,6 +509,7 @@ export default {
                         console.log(res.data);
                         if (res.data.code == 0) {
                             this.$message.success('注销 ' + row.user_name + ' 的证书成功，请刷新页面');
+                            this.getData();
                         } else {
                             this.$message.error('注销 ' + row.user_name + ' 的证书失败');
                         }
@@ -539,6 +566,7 @@ export default {
             department = this.form.user_role2.department;
             role = this.form.user_role2.role;
             var roleStr2 = this.generateRoleStr(department, role);
+            this.form.user_path = this.transfUserPath(this.form.user_path);
             this.$axios
                 .post('api/user/update', {
                     user_id: this.form.user_id,
@@ -579,6 +607,7 @@ export default {
                         //console.log(res.data);
                         if (res.data.code == 0) {
                             this.$message.success('创建 ' + row.user_name + ' 的证书成功，请刷新页面');
+                            this.getData();
                         } else {
                             this.$message.error('创建 ' + row.user_name + ' 的证书失败');
                         }
@@ -712,6 +741,7 @@ export default {
                 department = this.form.user_role2.department;
                 role = this.form.user_role2.role;
                 var roleStr2 = this.generateRoleStr(department, role);
+                this.form.user_path = this.transfUserPath(this.form.user_path);
                 this.$axios.post('api/user/create', {
                     user_name: this.form.user_name,
                     user_role: roleStr1 + "#" + roleStr2,
@@ -812,6 +842,13 @@ export default {
             }
             return roleStr;
         },
+        transfUserPath(path) {
+            var str = path.replace(/\\/g,"/");
+            if (str[str.length - 1] != "/") {
+                str = str.concat('/');
+            }
+            return str;
+        }
     }
 };
 </script>
