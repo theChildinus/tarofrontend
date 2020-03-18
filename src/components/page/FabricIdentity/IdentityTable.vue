@@ -116,7 +116,7 @@
         </div>
 
         <!-- 编辑弹出框 -->
-        <el-dialog title="编辑" :visible.sync="editVisible" width="30%">
+        <el-dialog title="编辑" :visible.sync="editVisible" :close-on-click-modal="false" width="30%">
             <el-form ref="form" :model="form" label-width="140px">
                 <el-form-item label="身份名称">
                     <el-input v-model="form.identity_name" disabled></el-input>
@@ -144,7 +144,7 @@
                     <el-input v-model="form.identity_user"></el-input>
                 </el-form-item>
                 <el-form-item label="参与者主机密码">
-                    <el-input v-model="form.identity_pw"></el-input>
+                    <el-input type="password" v-model="form.identity_pw"></el-input>
                 </el-form-item>
                 <el-form-item label="参与者主机路径">
                     <el-input v-model="form.identity_path"></el-input>
@@ -157,7 +157,7 @@
         </el-dialog>
 
         <!-- 添加参与者身份信息弹出框 -->
-        <el-dialog title="添加参与者身份信息" :visible.sync="addIdentityVisible" width="31%">
+        <el-dialog title="添加参与者身份信息" :visible.sync="addIdentityVisible" :close-on-click-modal="false" width="31%">
             <el-form ref="form" :model="form" :rules="rules" label-width="140px">
                 <el-form-item label="身份名称" prop="identity_name">
                 <el-input v-model="form.identity_name"></el-input>
@@ -187,7 +187,7 @@
                     <el-input v-model="form.identity_user"></el-input>
                 </el-form-item>
                 <el-form-item label="参与者主机密码" prop="identity_pw">
-                    <el-input v-model="form.identity_pw"></el-input>
+                    <el-input type="password" v-model="form.identity_pw"></el-input>
                 </el-form-item>
                 <el-form-item label="参与者主机路径" prop="identity_path">
                     <el-input v-model="form.identity_path"></el-input>
@@ -200,7 +200,7 @@
         </el-dialog>
 
         <!-- 编辑组织结构弹出框 -->
-        <el-dialog title="编辑组织结构" :visible.sync="editOrgVisible" width="30%">
+        <el-dialog title="编辑组织结构" :visible.sync="editOrgVisible" :close-on-click-modal="false" width="30%">
             <el-tree :data="orgData" node-key="id" default-expand-all :expand-on-click-node="false">
                 <span class="custom-tree-node" slot-scope="{ node, data }">
                     <span v-if="node.data.isEdit==true">
@@ -429,7 +429,8 @@ export default {
                     .then(res => {
                         console.log(res.data);
                         if (res.data.code == 0) {
-                            this.$message.success('注册 ' + row.identity_name + ' 成功，请刷新页面');
+                            this.$message.success('注册 ' + row.identity_name + ' 成功');
+                            this.getData();
                         } else {
                             this.$message.error('注册 ' + row.identity_name + ' 失败或已注册');
                         }
@@ -453,7 +454,8 @@ export default {
                 .then(res => {
                     console.log(res.data);
                     if (res.data.code == 0) {
-                        this.$message.success('登记 ' + row.identity_name + ' 成功，请刷新页面');
+                        this.$message.success('登记 ' + row.identity_name + ' 成功');
+                        this.getData();
                     } else {
                         this.$message.error('登记 ' + row.identity_name + ' 失败或已登记');
                     }
@@ -475,7 +477,8 @@ export default {
                 .then(res => {
                     console.log(res.data);
                     if (res.data.code == 0) {
-                        this.$message.success('注销 ' + row.identity_name + ' 成功，请刷新页面');
+                        this.$message.success('注销 ' + row.identity_name + ' 成功');
+                        this.getData();
                     } else {
                         this.$message.error('注销 ' + row.identity_name + ' 失败或已注销');
                     }
@@ -603,8 +606,8 @@ export default {
         handleAddTop() {
             this.orgData.push({
             id: ++this.orgId,
-            label: '顶级组织',
-            value: '顶级组织',
+            label: '一级组织',
+            value: '一级组织',
             isEdit: true,
             children: []
             })

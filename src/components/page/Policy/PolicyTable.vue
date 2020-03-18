@@ -71,7 +71,7 @@
         </div>
 
         <!-- 编辑策略规则弹出框 -->
-        <el-dialog title="编辑" :visible.sync="editVisible" width="30%">
+        <el-dialog title="编辑" :visible.sync="editVisible" :close-on-click-modal="false" width="30%">
             <el-form ref="form" :model="form" label-width="120px">
                 <el-form-item label="策略名称">
                     <el-cascader v-model="form.policy_name" :options="policyTreeOpts" 
@@ -128,7 +128,7 @@
         </el-dialog>
 
         <!-- 编辑策略规则动作弹出框 -->
-        <el-dialog title="编辑策略动作（以 ## 分隔）" :visible.sync="editEnumVisible" width="30%">
+        <el-dialog title="编辑策略动作（以 ## 分隔）" :visible.sync="editEnumVisible" :close-on-click-modal="false" width="30%">
             <el-input type="textarea" autosize placeholder="请输入内容" v-model="enumObj.enum_value"></el-input>
             <span slot="footer" class="dialog-footer">
                 <el-button @click="editEnumVisible = false">取 消</el-button>
@@ -137,7 +137,7 @@
         </el-dialog>
 
         <!-- 添加策略规则弹出框 -->
-        <el-dialog title="添加策略规则" :visible.sync="addPolicyRuleVisible" width="30%">
+        <el-dialog title="添加策略规则" :visible.sync="addPolicyRuleVisible" :close-on-click-modal="false" width="30%">
             <el-form ref="form" :model="form" :rules="rules" label-width="120px">
                 <el-form-item label="策略名称" prop="policy_name">
                     <el-cascader v-model="form.policy_name" :options="policyTreeOpts" 
@@ -190,7 +190,7 @@
         </el-dialog>
 
         <!-- 编辑策略树弹出框 -->
-        <el-dialog title="编辑策略树" :visible.sync="editPolicyTreeVisible" width="30%">
+        <el-dialog title="编辑策略树" :visible.sync="editPolicyTreeVisible" :close-on-click-modal="false" width="30%">
             <el-tree :data="policyTreeData" node-key="id" default-expand-all :expand-on-click-node="false">
                 <span class="custom-tree-node" slot-scope="{ node, data }">
                     <span v-if="node.data.isEdit==true">
@@ -213,7 +213,7 @@
         </el-dialog>
 
         <!-- 管理策略规则资源弹出框 -->
-        <el-dialog title="管理策略规则资源" :visible.sync="editPolicyResVisible" width="30%">
+        <el-dialog title="管理策略规则资源" :visible.sync="editPolicyResVisible" :close-on-click-modal="false" width="30%">
             <el-tree :data="policyResourceData" node-key="id" :default-expand-all="false" :expand-on-click-node="false">
                 <span class="custom-tree-node" slot-scope="{ node, data }">
                     <span v-if="node.data.isEdit==true">
@@ -235,7 +235,7 @@
         </el-dialog>
 
         <!-- 访问控制模型弹出框 -->
-        <el-dialog title="设置访问控制模型" :visible.sync="editModelVisible" width="30%">
+        <el-dialog title="设置访问控制模型" :visible.sync="editModelVisible" :close-on-click-modal="false" width="30%">
             <div v-for="(item, index) in modelDataList" :key="index" :label="item" :value="item">
                 <el-row type="flex" class="row-bg">
                 <el-col><div>{{item.policy_name}}</div></el-col>
@@ -252,7 +252,7 @@
         </el-dialog>
 
         <!-- 从EPC模型导入弹出框 -->
-        <el-dialog title="从EPC模型导入" :visible.sync="parseEpcVisible" width="30%">
+        <el-dialog title="从EPC模型导入" :visible.sync="parseEpcVisible" :close-on-click-modal="false" width="30%">
             <el-upload ref="upload" class="upload-demo"
             accept=".epml, .xml"
             action="api/policy/executable"
@@ -329,7 +329,6 @@ export default {
                 policy_sub: [{   
                     type: 'object', required: true, trigger: 'change',
                     fields: {
-                        department: {type: 'array', required: true, message: '请选择组织', trigger: 'blur'},
                         role: {required: true, message: '请选择用户或角色', trigger: 'blur'}
                     }
                 }],
@@ -531,7 +530,8 @@ export default {
                 .then( (res) => {
                     this.addPolicyRuleVisible = false;
                     if (res.data.code == 0) {
-                        this.$message.success('提交成功！'); 
+                        this.$message.success('提交成功！');
+                        this.handleRefresh();
                     } else {
                         this.$message.error('提交失败，策略可能已存在！'); 
                     }   

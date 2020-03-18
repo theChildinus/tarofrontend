@@ -116,7 +116,7 @@
         </div>
 
         <!-- 编辑弹出框 -->
-        <el-dialog title="编辑" :visible.sync="editVisible" width="30%">
+        <el-dialog title="编辑" :visible.sync="editVisible" :close-on-click-modal="false" width="30%">
             <el-form ref="form" :model="form" :rules="rules" label-width="140px">
                 <el-form-item label="用户名">
                     <el-input v-model="form.user_name" disabled></el-input>
@@ -167,7 +167,7 @@
         </el-dialog>
 
         <!-- 编辑用户角色弹出框 -->
-        <el-dialog title="编辑用户角色（以 ## 分隔）" :visible.sync="editEnumVisible" width="30%">
+        <el-dialog title="编辑用户角色（以 ## 分隔）" :visible.sync="editEnumVisible" :close-on-click-modal="false" width="30%">
             <el-input type="textarea" autosize placeholder="请输入内容" v-model="enumObj.enum_value"></el-input>
             <span slot="footer" class="dialog-footer">
                 <el-button @click="editEnumVisible = false">取 消</el-button>
@@ -176,7 +176,7 @@
         </el-dialog>
 
         <!-- 编辑组织结构弹出框 -->
-        <el-dialog title="编辑组织结构" :visible.sync="editOrgVisible" width="30%">
+        <el-dialog title="编辑组织结构" :visible.sync="editOrgVisible" :close-on-click-modal="false" width="30%">
             <el-tree :data="orgData" node-key="id" default-expand-all :expand-on-click-node="false">
                 <span class="custom-tree-node" slot-scope="{ node, data }">
                     <span v-if="node.data.isEdit==true">
@@ -198,7 +198,7 @@
         </el-dialog>
 
          <!-- 添加用户身份信息弹出框 -->
-        <el-dialog title="添加用户身份信息" :visible.sync="addUserVisible" width="30%">
+        <el-dialog title="添加用户身份信息" :visible.sync="addUserVisible" :close-on-click-modal="false" width="30%">
             <el-form ref="form" :model="form" :rules="rules" label-width="140px">
                 <el-form-item label="用户名" prop="user_name">
                     <el-input v-model="form.user_name"></el-input>
@@ -249,7 +249,7 @@
         </el-dialog>
 
         <!-- 设置互斥角色弹出框 -->
-        <el-dialog title="设置互斥角色" :visible.sync="editMutexRoleVisible" width="30%">
+        <el-dialog title="设置互斥角色" :visible.sync="editMutexRoleVisible" :close-on-click-modal="false" width="30%">
             <el-table
                 :data="mutexRoleData"
                 border
@@ -272,7 +272,7 @@
             </span>
         </el-dialog>
 
-        <el-dialog title="添加互斥角色" :visible.sync="addMutexRoleVisible" width="27%">
+        <el-dialog title="添加互斥角色" :visible.sync="addMutexRoleVisible" :close-on-click-modal="false" width="27%">
             <el-form ref="form" :model="form">
                 <el-form-item label="角色1">
                     <el-row type="flex" class="row-bg" :gutter="10">
