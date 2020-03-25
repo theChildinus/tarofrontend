@@ -175,7 +175,7 @@
                 </el-form-item>
                 <el-form-item label="策略规则资源" prop="policy_obj">
                     <el-cascader v-model="form.policy_obj" :options="policyResourceOpts" 
-                    :props="{ checkStrictly: true }" clearable style="width: 100%;"></el-cascader>
+                    :props="{ multiple: true }" clearable style="width: 100%;"></el-cascader>
                 </el-form-item>
                 <el-form-item label="策略规则动作" prop="policy_act">
                     <el-select v-model="form.policy_act" placeholder="请选择">
@@ -842,10 +842,26 @@ export default {
         getPolicyObjStr() {
             var array = this.form.policy_obj;
             var policyObjStr = "";
-            for (var i = 0; i < array.length; i++) {
-                policyObjStr += array[i];
-                if (i != array.length - 1) {
-                    policyObjStr += "/";
+            if (typeof array[0] == "object") {
+                for (var i = 0; i < array.length; i++) {
+                    var subObjStr = "";
+                    for (var j = 0; j < array[i].length; j++) {
+                        subObjStr += array[i][j];
+                        if (j != array[i].length - 1) {
+                            subObjStr += "/";
+                        }
+                    }
+                    policyObjStr += subObjStr;
+                    if (i != array.length - 1) {
+                        policyObjStr += "#";
+                    }
+                }
+            } else {
+                for (var i = 0; i < array.length; i++) {
+                    policyObjStr += array[i];
+                    if (i != array.length - 1) {
+                        policyObjStr += "/";
+                    }
                 }
             }
             return policyObjStr;
