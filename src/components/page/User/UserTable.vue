@@ -150,7 +150,7 @@
                 <el-form-item label="地址">
                     <el-input v-model="form.user_address"></el-input>
                 </el-form-item>
-                <el-form-item label="电子邮箱">
+                <el-form-item label="电子邮箱" prop="user_email">
                     <el-input v-model="form.user_email"></el-input>
                 </el-form-item>
                 <el-form-item label="联系电话" prop="user_phone">
@@ -232,7 +232,7 @@
                 <el-form-item label="地址">
                     <el-input v-model="form.user_address"></el-input>
                 </el-form-item>
-                <el-form-item label="电子邮箱">
+                <el-form-item label="电子邮箱" prop="user_email">
                     <el-input v-model="form.user_email"></el-input>
                 </el-form-item>
                 <el-form-item label="联系电话" prop="user_phone">
@@ -359,6 +359,9 @@ export default {
                         role: {required: true, message: '角色不为空', trigger: 'blur'}
                     }
                 }],
+                user_email: [
+                    { required: true, message: '电子邮箱不为空', trigger: 'change' },
+                ],
                 user_phone: [
                     { required: true, message: '联系电话不为空', trigger: 'change' },
                 ],
@@ -444,6 +447,7 @@ export default {
                 this.$axios
                 .post('api/user/install', {
                     user_name: row.user_name,
+                    user_email: row.user_email,
                     user_path: row.user_path,
                 })
                 .then(res => {
