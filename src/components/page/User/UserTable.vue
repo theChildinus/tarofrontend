@@ -73,14 +73,18 @@
                             class="orange"
                             @click="handleRegister(scope.$index, scope.row)"
                         >创建证书</el-button>
+                        <el-dropdown type="text" trigger="click">
+                            <span class="el-dropdown-link">
+                                <i class="el-icon-arrow-down el-icon--left"></i>安装证书
+                            </span>
+                            <el-dropdown-menu>
+                                <el-dropdown-item @click.native="handleInstall(scope.$index, scope.row, 'store')">到存储设备</el-dropdown-item>
+                                <el-dropdown-item @click.native="handleInstall(scope.$index, scope.row, 'email')">到电子邮箱</el-dropdown-item>
+                            </el-dropdown-menu>
+                        </el-dropdown>
                         <el-button
                             type="text"
                             icon="el-icon-download"
-                            @click="handleInstall(scope.$index, scope.row)"
-                        >安装证书</el-button>
-                        <el-button
-                            type="text"
-                            icon="el-icon-check"
                             @click="handleDownload(scope.$index, scope.row)"
                         >下载证书</el-button>
                         <el-button
@@ -439,25 +443,44 @@ export default {
                 })
                 .catch(() => {});
         },
-        handleInstall(index, row) {
-            this.$confirm('确定要安装用户 ' + row.user_name + ' 的身份证书吗？', '提示', {
+        handleInstall(index, row, type) {
+            console.log("Install: ", type);
+            var str = type == "store" ? '存储设备' : '电子邮箱';
+            this.$confirm('确定要安装用户 ' + row.user_name + ' 的身份证书到' + str + '吗？', '提示', {
                 type: 'warning'
             })
             .then(() => {
-                this.$axios
-                .post('api/user/install', {
-                    user_name: row.user_name,
-                    user_email: row.user_email,
-                    user_path: row.user_path,
-                })
-                .then(res => {
-                    console.log(res.data);
-                    if (res.data.code == 0) {
-                        this.$message.success('安装 ' + row.user_name + ' 身份证书成功');
-                    } else {
-                        this.$message.error('安装 ' + row.user_name + ' 身份证书失败');
-                    }
-                });
+                if (type == 'store') {
+                    this.$axios
+                    .post('api/user/install', {
+                        user_name: row.user_name,
+                        user_email: '',
+                        user_path: row.user_path,
+                    })
+                    .then(res => {
+                        console.log(res.data);
+                        if (res.data.code == 0) {
+                            this.$message.success('安装 ' + row.user_name + ' 身份证书成功');
+                        } else {
+                            this.$message.error('安装 ' + row.user_name + ' 身份证书失败');
+                        }
+                    });
+                } else if (type == 'email') {
+                    this.$axios
+                    .post('api/user/install', {
+                        user_name: row.user_name,
+                        user_email: row.user_email,
+                        user_path: '',
+                    })
+                    .then(res => {
+                        console.log(res.data);
+                        if (res.data.code == 0) {
+                            this.$message.success('安装 ' + row.user_name + ' 身份证书成功');
+                        } else {
+                            this.$message.error('安装 ' + row.user_name + ' 身份证书失败');
+                        }
+                    });
+                }
             })
             .catch(() => {});
         },
@@ -897,4 +920,13 @@ export default {
     font-size: 14px;
     padding-right: 8px;
 }
+
+  .el-dropdown-link {
+    font-size: 12px;
+    cursor: pointer;
+    color: #409EFF;
+  }
+  .el-icon-arrow-down {
+    font-size: 10px;
+  }
 </style>
