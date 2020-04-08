@@ -254,12 +254,10 @@
         <!-- 从EPC模型导入弹出框 -->
         <el-dialog title="从EPC模型导入" :visible.sync="parseEpcVisible" :close-on-click-modal="false" width="30%">
             <el-upload ref="upload" class="upload-demo"
-            accept=".epml, .xml"
+            accept=".epml"
             action="api/policy/executable"
             :file-list="fileList"
             :on-change="handleChange"
-            :on-success="onSuccess"
-            :on-error="onError"
             :auto-upload="false">
                 <el-button type="primary" slot="trigger">选取文件</el-button>
                 <div slot="tip" class="el-upload__tip">请上传.epml格式文件</div>
@@ -299,6 +297,7 @@ export default {
             editModelVisible: false,
             parseEpcVisible: false,
             fileList: [],
+            fileCxtBase64: '',
             modelDataList: [],
             modelObj: {},
             policyTreeId: -1,
@@ -779,36 +778,49 @@ export default {
         handleParseEPC() {
             this.parseEpcVisible = true;
             this.fileList = [];
-        },
-        onSuccess(res) {
-            //console.log("res: ", res)
-            if (res.code == 0) {
-                this.$alert(res.normsg, '提示', {
-                    confirmButtonText: '确定',
-                    callback: action => { console.log("解析成功")},
-                });
-            } else {
-                this.$alert(res.errmsg, '提示', {
-                    confirmButtonText: '确定',
-                    callback: action => { console.log("解析错误")},
-                });
-            }
-        },
-　　　  onError(res) {
-            this.$alert('上传失败', '提示', {
-            confirmButtonText: '确定',
-            callback: action => { console.log("上传失败") },
-            });
+            this.fileCxtBase64 = '';
         },
         handleChange(file, fileList) {
             //展示最后一次选择的文件
             if (fileList.length > 0) {
                 this.fileList = [fileList[fileList.length - 1]];
             }
+            this.getBase64(file.raw).then(resBase64 => {
+                this.fileCxtBase64 = resBase64.split(',')[1]
+                //console.log("fileCxtBase64", this.fileCxtBase64);
+            });
         },
 　　    submitUpload() {
             console.log("submitUpload");
-            this.$refs.upload.submit();
+            this.$axios
+                .post('api/policy/executable', {
+                    epc_ctx: this.fileCxtBase64,
+                })
+                .then( (res) => {
+                    if (res.data.code == 0) {
+                        this.$message.success('上传成功！');
+                        this.handleRefresh();
+                        this.parseEpcVisible = false;
+                    } else {
+                        this.$message.error('上传失败: ' + res.data.errmsg); 
+                    }   
+                });
+        },
+        getBase64(file) {
+            return new Promise(function(resolve, reject) {
+                let reader = new FileReader();
+                let imgResult = "";
+                reader.readAsDataURL(file);
+                reader.onload = function() {
+                    imgResult = reader.result;
+                };
+                reader.onerror = function(error) {
+                    reject(error);
+                };
+                reader.onloadend = function() {
+                    resolve(imgResult);
+                };
+            });
         },
         /*#################################### 通用函数 ####################################*/
         getPolicyNameStr() {
