@@ -9,20 +9,13 @@
         </div>
         <div class="container">
             <div class="handle-box">
-                <!-- <el-button
-                    type="primary"
-                    icon="el-icon-delete"
-                    class="handle-del mr10"
-                    @click="delAllSelection"
-                >批量删除</el-button> -->
-                <el-input v-model="search.searchSub" placeholder="策略名称" class="handle-input mr10"></el-input>
-                <el-button type="primary" icon="el-icon-search" @click="handleSearch">搜索</el-button>
-                <el-button type="primary" icon="el-icon-refresh" @click="handleRefresh">刷新</el-button>
-                <el-button type="danger" icon="el-icon-delete" @click="clearSelection">清空</el-button>
-                <el-button type="primary" icon="el-icon-edit" @click="handleEditPolicyTree">编辑策略树</el-button>
-                <el-button type="primary" icon="el-icon-plus" @click="handleAddPolicyRule">添加策略规则</el-button>
-                <el-button type="primary" icon="el-icon-edit" @click="handleEnumEdit">编辑策略规则动作</el-button>
-                <el-button type="primary" icon="el-icon-edit" @click="handleEditPolicyRes">管理策略规则资源</el-button>
+                <el-input v-model="search.searchSub" clearable placeholder="策略名称" style="width:120px;" class="handle-input mr10"></el-input>
+                <el-button icon="el-icon-search" @click="handleSearch">搜索</el-button>
+                <el-button icon="el-icon-refresh" @click="handleRefresh">刷新</el-button>
+                <el-button type="primary" icon="el-icon-edit" @click="handleEditPolicyTree">策略树管理</el-button>
+                <el-button type="primary" icon="el-icon-edit" @click="handleEditPolicyRes">策略规则资源管理</el-button>
+                <el-button type="primary" icon="el-icon-edit" @click="handleEnumEdit">策略规则动作管理</el-button>
+                <el-button type="success" icon="el-icon-plus" @click="handleAddPolicyRule">添加策略规则</el-button>
                 <el-button type="primary" icon="el-icon-edit" @click="handleParseEPC">从EPC模型导入</el-button>
             </div>
             <el-table
@@ -59,6 +52,11 @@
                 </el-table-column>
             </el-table>
             <div class="pagination">
+            <el-row :gutter="20" type="flex" justify="space-between">
+                <el-col :span="2">
+                    <el-button type="danger" icon="el-icon-delete" @click="delAllSelection">批量删除</el-button>
+                </el-col>
+                <el-col>
                 <el-pagination
                     background
                     layout="total, prev, pager, next"
@@ -67,6 +65,8 @@
                     :total="pageTotal"
                     @current-change="handlePageChange"
                 ></el-pagination>
+                </el-col>
+            </el-row>
             </div>
         </div>
 
@@ -235,13 +235,14 @@
         </el-dialog>
 
         <!-- 访问控制模型弹出框 -->
-        <el-dialog title="设置访问控制模型" :visible.sync="editModelVisible" :close-on-click-modal="false" width="30%">
+        <el-dialog title="设置访问控制模型" :visible.sync="editModelVisible" :close-on-click-modal="false" width="35%">
             <div v-for="(item, index) in modelDataList" :key="index" :label="item" :value="item">
-                <el-row type="flex" class="row-bg">
+                <el-row type="flex" :gutter="20">
                 <el-col><div>{{item.policy_name}}</div></el-col>
                 <el-col><el-radio-group v-model="item.model_type">
                         <el-radio label="ACL"></el-radio>
                         <el-radio label="RBAC"></el-radio>
+                        <el-radio label="ABAC"></el-radio>
                     </el-radio-group></el-col>
                 </el-row>
             </div>    
@@ -382,9 +383,11 @@ export default {
             })
                 .then(() => {
                     this.tableData.splice(index, 1);
+                    let ids = [];
+                    ids.push(row.policy_id);
                     this.$axios
-                        .post('api/policy/deleteOne', {
-                            policy_id: row.policy_id
+                        .post('api/policy/delete', {
+                            ids: ids
                         })
                         .then(res => {
                             this.$message.success('删除成功');
@@ -400,11 +403,32 @@ export default {
         delAllSelection() {
             const length = this.multipleSelection.length;
             let str = '';
+            let ids = [];
             this.delList = this.delList.concat(this.multipleSelection);
             for (let i = 0; i < length; i++) {
-                str += this.multipleSelection[i].name + ' ';
+                str += this.multipleSelection[i].policy_sub + "," + 
+                this.multipleSelection[i].policy_obj +
+                this.multipleSelection[i].policy_act + '  ';
+                ids.push(this.multipleSelection[i].policy_id)
             }
-            this.$message.error(`删除了${str}`);
+            this.$confirm('确定要删除 ' + str + '吗？', '提示', {
+                type: 'warning'
+            })
+                .then(() => {
+                    this.$axios
+                        .post('api/policy/delete', {
+                            ids: ids,
+                        })
+                        .then(res => {
+                            if (res.data.code == 0) {
+                                this.$message.success('删除成功');
+                                this.handleRefresh();
+                            } else {
+                                this.$message.error('删除失败');
+                            }
+                        });
+                })
+                .catch(() => {});
             this.multipleSelection = [];
         },
         handleRefresh() {

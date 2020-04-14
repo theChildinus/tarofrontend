@@ -9,27 +9,21 @@
         </div>
         <div class="container">
             <div class="handle-box">
-                <!-- <el-button
-                    type="primary"
-                    icon="el-icon-delete"
-                    class="handle-del mr10"
-                    @click="delAllSelection"
-                >批量删除</el-button> -->
                 <el-row>
                     <el-col :span='16'>
                         <el-select
                             v-model="search.searchType"
+                            clearable
                             placeholder="身份类型"
                             class="handle-select mr10"
                         >
                             <el-option v-for="item in identityTypeList" :key="item" :label="item" :value="item"></el-option>
                         </el-select>
-                        <el-input v-model="search.searchName" placeholder="身份名称" class="handle-input mr10"></el-input>
-                        <el-button type="primary" icon="el-icon-search" @click="handleSearch">搜索</el-button>
-                        <el-button type="primary" icon="el-icon-refresh" @click="handleRefresh">刷新</el-button>
-                        <el-button type="danger"  icon="el-icon-delete" @click="clearSelection">清空</el-button>                        
-                        <el-button type="primary" icon="el-icon-edit" @click="handleOrgEdit">编辑组织结构</el-button>
-                        <el-button type="primary" icon="el-icon-plus" @click="handleAddIdentity">添加参与者</el-button>
+                        <el-input v-model="search.searchName" clearable placeholder="身份名称" style="width:120px;" class="handle-input mr10"></el-input>
+                        <el-button icon="el-icon-search" @click="handleSearch">搜索</el-button>
+                        <el-button icon="el-icon-refresh" @click="handleRefresh">刷新</el-button>                        
+                        <el-button type="primary" icon="el-icon-edit" @click="handleOrgEdit">组织结构管理</el-button>
+                        <el-button type="success" icon="el-icon-plus" @click="handleAddIdentity">添加参与者</el-button>
                     </el-col>
                     <el-col :span='5' :offset='3'>
                         <el-alert title="请保证身份名唯一，重名身份可添加数字进行区分" type="info" :closable="false" center show-icon></el-alert>
@@ -104,6 +98,11 @@
                 </el-table-column>
             </el-table>
             <div class="pagination">
+            <el-row :gutter="20" type="flex" justify="space-between">
+                <el-col :span="2">
+                    <el-button type="danger" icon="el-icon-delete" @click="delAllSelection">批量删除</el-button>
+                </el-col>
+                <el-col>
                 <el-pagination
                     background
                     layout="total, prev, pager, next"
@@ -112,6 +111,8 @@
                     :total="pageTotal"
                     @current-change="handlePageChange"
                 ></el-pagination>
+                </el-col>
+            </el-row>
             </div>
         </div>
 
@@ -326,9 +327,11 @@ export default {
             })
                 .then(() => {
                     this.tableData.splice(index, 1);
+                    let ids = [];
+                    ids.push(row.identity_id);
                     this.$axios
-                        .post('api/identity/deleteOne', {
-                            identity_id: row.identity_id
+                        .post('api/identity/delete', {
+                            ids: ids
                         })
                         .then(res => {
                             this.$message.success('删除成功');
@@ -343,11 +346,30 @@ export default {
         delAllSelection() {
             const length = this.multipleSelection.length;
             let str = '';
+            let ids = [];
             this.delList = this.delList.concat(this.multipleSelection);
             for (let i = 0; i < length; i++) {
-                str += this.multipleSelection[i].name + ' ';
+                str += this.multipleSelection[i].identity_name + ' ';
+                ids.push(this.multipleSelection[i].identity_id)
             }
-            this.$message.error(`删除了${str}`);
+            this.$confirm('确定要删除' + str + '吗？', '提示', {
+                type: 'warning'
+            })
+                .then(() => {
+                    this.$axios
+                        .post('api/identity/delete', {
+                            ids: ids,
+                        })
+                        .then(res => {
+                            if (res.data.code == 0) {
+                                this.$message.success(`删除了${str}`);
+                                this.handleRefresh();
+                            } else {
+                                this.$message.error('删除失败');
+                            }
+                        });
+                })
+                .catch(() => {});
             this.multipleSelection = [];
         },
         handleRefresh() {

@@ -9,29 +9,23 @@
         </div>
         <div class="container">
             <div class="handle-box">
-                <!-- <el-button
-                    type="primary"
-                    icon="el-icon-delete"
-                    class="handle-del mr10"
-                    @click="delAllSelection"
-                >批量删除</el-button> -->
                 <el-row>
                     <el-col :span='20'>
                         <el-select
                             v-model="search.searchType"
+                            clearable
                             placeholder="用户角色"
                             class="handle-select mr10"
                         >
                             <el-option v-for="item in enumValueList" :key="item" :label="item" :value="item"></el-option>
                         </el-select>
-                        <el-input v-model="search.searchName" placeholder="用户名" class="handle-input mr10"></el-input>
-                        <el-button type="primary" icon="el-icon-search" @click="handleSearch">搜索</el-button>
-                        <el-button type="primary" icon="el-icon-refresh" @click="handleRefresh">刷新</el-button>
-                        <el-button type="danger" icon="el-icon-delete" @click="clearSelection">清空</el-button>
-                        <el-button type="primary" icon="el-icon-edit" @click="handleEnumEdit">编辑用户角色</el-button>
-                        <el-button type="primary" icon="el-icon-edit" @click="handleOrgEdit">编辑组织结构</el-button>
-                        <el-button type="primary" icon="el-icon-edit" @click="handleMutexRole">设置互斥角色</el-button>
-                        <el-button type="primary" icon="el-icon-plus" @click="handleAddUser">添加用户</el-button>
+                        <el-input v-model="search.searchName" clearable placeholder="用户名" style="width:120px;" class="handle-input mr10"></el-input>
+                        <el-button icon="el-icon-search" @click="handleSearch">搜索</el-button>
+                        <el-button icon="el-icon-refresh" @click="handleRefresh">刷新</el-button>
+                        <el-button type="primary" icon="el-icon-edit" @click="handleEnumEdit">用户角色管理</el-button>                        
+                        <el-button type="primary" icon="el-icon-edit" @click="handleMutexRole">互斥角色管理</el-button>
+                        <el-button type="primary" icon="el-icon-edit" @click="handleOrgEdit">组织结构管理</el-button>
+                        <el-button type="success" icon="el-icon-plus" @click="handleAddUser">添加用户</el-button>
                     </el-col>
                     <el-col :span='4' :offset='0'>
                         <el-alert title="请保证用户名唯一，重名用户可添加数字进行区分" type="info" :closable="false" center show-icon></el-alert>
@@ -108,6 +102,11 @@
                 </el-table-column>
             </el-table>
             <div class="pagination">
+            <el-row :gutter="20" type="flex" justify="space-between">
+                <el-col :span="2">
+                    <el-button type="danger" icon="el-icon-delete" @click="delAllSelection">批量删除</el-button>
+                </el-col>
+                <el-col>
                 <el-pagination
                     background
                     layout="total, prev, pager, next"
@@ -116,6 +115,8 @@
                     :total="pageTotal"
                     @current-change="handlePageChange"
                 ></el-pagination>
+                </el-col>
+            </el-row>
             </div>
         </div>
 
@@ -359,7 +360,6 @@ export default {
                 user_role1: [{   
                     type: 'object', required: true, trigger: 'change',
                     fields: {
-                        department: {type: 'array', required: true, message: '组织不为空', trigger: 'blur'},
                         role: {required: true, message: '角色不为空', trigger: 'blur'}
                     }
                 }],
@@ -411,9 +411,6 @@ export default {
         handleRefresh() {
             this.getData();
         },
-        clearSelection() {
-            this.search = {};
-        },
         // 触发搜索按钮
         handleSearch() {
             this.$set(this.query, 'pageIndex', 1);
@@ -427,17 +424,17 @@ export default {
             })
                 .then(() => {
                     this.tableData.splice(index, 1);
+                    let ids = [];
+                    ids.push(row.user_id);
                     this.$axios
-                        .post('api/user/deleteOne', {
-                            user_id: row.user_id,
-                            user_name: row.user_name,
-                            user_role: row.user_role,
+                        .post('api/user/delete', {
+                            ids: ids,
                         })
                         .then(res => {
                             if (res.data.code == 0) {
                                 this.$message.success('删除成功');
                             } else {
-                                this.$message.success('删除失败');
+                                this.$message.error('删除失败');
                             }
                         });
                 })
@@ -551,11 +548,30 @@ export default {
         delAllSelection() {
             const length = this.multipleSelection.length;
             let str = '';
+            let ids = [];
             this.delList = this.delList.concat(this.multipleSelection);
             for (let i = 0; i < length; i++) {
-                str += this.multipleSelection[i].name + ' ';
+                str += this.multipleSelection[i].user_name + ' ';
+                ids.push(this.multipleSelection[i].user_id)
             }
-            this.$message.error(`删除了${str}`);
+            this.$confirm('确定要删除' + str + '吗？', '提示', {
+                type: 'warning'
+            })
+                .then(() => {
+                    this.$axios
+                        .post('api/user/delete', {
+                            ids: ids,
+                        })
+                        .then(res => {
+                            if (res.data.code == 0) {
+                                this.$message.success(`删除了${str}`);
+                                this.handleRefresh();
+                            } else {
+                                this.$message.error('删除失败');
+                            }
+                        });
+                })
+                .catch(() => {});
             this.multipleSelection = [];
         },
         // 编辑操作
