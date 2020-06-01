@@ -16,7 +16,7 @@
                 <el-button type="primary" icon="el-icon-edit" @click="handleEditPolicyRes">策略规则资源管理</el-button>
                 <el-button type="primary" icon="el-icon-edit" @click="handleEnumEdit">策略规则动作管理</el-button>
                 <el-button type="success" icon="el-icon-plus" @click="handleAddPolicyRule">添加策略规则</el-button>
-                <el-button type="primary" icon="el-icon-edit" @click="handleParseEPC">从EPC模型导入</el-button>
+                <el-button type="primary" icon="el-icon-edit" @click="handleParseEPC">EPC模型解析</el-button>
             </div>
             <el-table
                 :data="tableData"
@@ -71,7 +71,7 @@
         </div>
 
         <!-- 编辑策略规则弹出框 -->
-        <el-dialog title="编辑" :visible.sync="editVisible" :close-on-click-modal="false" width="30%">
+        <el-dialog title="编辑" :visible.sync="editVisible" :close-on-click-modal="false" width="35%">
             <el-form ref="form" :model="form" label-width="120px">
                 <el-form-item label="策略名称">
                     <el-cascader v-model="form.policy_name" :options="policyTreeOpts" 
@@ -137,7 +137,7 @@
         </el-dialog>
 
         <!-- 添加策略规则弹出框 -->
-        <el-dialog title="添加策略规则" :visible.sync="addPolicyRuleVisible" :close-on-click-modal="false" width="30%">
+        <el-dialog title="添加策略规则" :visible.sync="addPolicyRuleVisible" :close-on-click-modal="false" width="35%">
             <el-form ref="form" :model="form" :rules="rules" label-width="120px">
                 <el-form-item label="策略名称" prop="policy_name">
                     <el-cascader v-model="form.policy_name" :options="policyTreeOpts" 
@@ -213,7 +213,7 @@
         </el-dialog>
 
         <!-- 管理策略规则资源弹出框 -->
-        <el-dialog title="管理策略规则资源" :visible.sync="editPolicyResVisible" :close-on-click-modal="false" width="30%">
+        <el-dialog title="管理策略规则资源" :visible.sync="editPolicyResVisible" :close-on-click-modal="false" width="35%">
             <el-tree :data="policyResourceData" node-key="id" :default-expand-all="false" :expand-on-click-node="false">
                 <span class="custom-tree-node" slot-scope="{ node, data }">
                     <span v-if="node.data.isEdit==true">
@@ -252,8 +252,8 @@
             </span>
         </el-dialog>
 
-        <!-- 从EPC模型导入弹出框 -->
-        <el-dialog title="从EPC模型导入" :visible.sync="parseEpcVisible" :close-on-click-modal="false" width="30%">
+        <!-- EPC模型解析弹出框 -->
+        <el-dialog title="EPC模型解析" :visible.sync="parseEpcVisible" :close-on-click-modal="false" width="30%">
             <el-upload ref="upload" class="upload-demo"
             accept=".epml"
             action="api/policy/executable"
@@ -264,7 +264,7 @@
                 <div slot="tip" class="el-upload__tip">请上传.epml格式文件</div>
             </el-upload>
             <span slot="footer" class="dialog-footer">
-            <el-button type="success" style="float:up" @click="submitUpload">上传并导入</el-button>
+            <el-button type="success" style="float:up" @click="submitUpload">上传并解析</el-button>
             <el-button @click="parseEpcVisible=false">取消</el-button>
             </span>
         </el-dialog>
@@ -822,11 +822,11 @@ export default {
                 })
                 .then( (res) => {
                     if (res.data.code == 0) {
-                        this.$message.success('上传成功！');
+                        this.$message.success('上传并解析成功！');
                         this.handleRefresh();
                         this.parseEpcVisible = false;
                     } else {
-                        this.$message.error('上传失败: ' + res.data.errmsg); 
+                        this.$message.error('解析失败: ' + res.data.errmsg); 
                     }   
                 });
         },

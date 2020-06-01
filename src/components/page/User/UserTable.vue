@@ -121,7 +121,7 @@
         </div>
 
         <!-- 编辑弹出框 -->
-        <el-dialog title="编辑" :visible.sync="editVisible" :close-on-click-modal="false" width="30%">
+        <el-dialog title="编辑" :visible.sync="editVisible" :close-on-click-modal="false" width="35%">
             <el-form ref="form" :model="form" :rules="rules" label-width="140px">
                 <el-form-item label="用户名">
                     <el-input v-model="form.user_name" disabled></el-input>
@@ -181,8 +181,8 @@
         </el-dialog>
 
         <!-- 编辑组织结构弹出框 -->
-        <el-dialog title="编辑组织结构" :visible.sync="editOrgVisible" :close-on-click-modal="false" width="30%">
-            <el-tree :data="orgData" node-key="id" default-expand-all :expand-on-click-node="false">
+        <el-dialog title="授时中心组织结构" :visible.sync="editOrgVisible" :close-on-click-modal="false" width="40%">
+            <el-tree :data="orgData" node-key="id" default-expand-all="true" :expand-on-click-node="false">
                 <span class="custom-tree-node" slot-scope="{ node, data }">
                     <span v-if="node.data.isEdit==true">
                         <el-input size="mini" v-model="node.data.label" @blur="saveOrgNode(node)"></el-input>
@@ -203,7 +203,7 @@
         </el-dialog>
 
          <!-- 添加用户身份信息弹出框 -->
-        <el-dialog title="添加用户身份信息" :visible.sync="addUserVisible" :close-on-click-modal="false" width="30%">
+        <el-dialog title="添加用户身份信息" :visible.sync="addUserVisible" :close-on-click-modal="false" width="35%">
             <el-form ref="form" :model="form" :rules="rules" label-width="140px">
                 <el-form-item label="用户名" prop="user_name">
                     <el-input v-model="form.user_name"></el-input>
@@ -359,9 +359,6 @@ export default {
                 ],
                 user_role1: [{   
                     type: 'object', required: true, trigger: 'change',
-                    fields: {
-                        role: {required: true, message: '角色不为空', trigger: 'blur'}
-                    }
                 }],
                 user_email: [
                     { required: true, message: '电子邮箱不为空', trigger: 'change' },
@@ -879,7 +876,9 @@ export default {
                         roleStr += "/";
                     }
                 }
-                roleStr = roleStr + "/" + role;
+                if (role != "") {
+                    roleStr = roleStr + "/" + role;
+                }
             } else {
                 roleStr = role;
             }

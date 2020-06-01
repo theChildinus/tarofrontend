@@ -117,7 +117,7 @@
         </div>
 
         <!-- 编辑弹出框 -->
-        <el-dialog title="编辑" :visible.sync="editVisible" :close-on-click-modal="false" width="30%">
+        <el-dialog title="编辑" :visible.sync="editVisible" :close-on-click-modal="false" width="35%">
             <el-form ref="form" :model="form" label-width="140px">
                 <el-form-item label="身份名称">
                     <el-input v-model="form.identity_name" disabled></el-input>
@@ -158,7 +158,7 @@
         </el-dialog>
 
         <!-- 添加参与者身份信息弹出框 -->
-        <el-dialog title="添加参与者身份信息" :visible.sync="addIdentityVisible" :close-on-click-modal="false" width="31%">
+        <el-dialog title="添加参与者身份信息" :visible.sync="addIdentityVisible" :close-on-click-modal="false" width="35%">
             <el-form ref="form" :model="form" :rules="rules" label-width="140px">
                 <el-form-item label="身份名称" prop="identity_name">
                 <el-input v-model="form.identity_name"></el-input>
@@ -201,7 +201,7 @@
         </el-dialog>
 
         <!-- 编辑组织结构弹出框 -->
-        <el-dialog title="编辑组织结构" :visible.sync="editOrgVisible" :close-on-click-modal="false" width="30%">
+        <el-dialog title="编辑组织结构" :visible.sync="editOrgVisible" :close-on-click-modal="false" width="35%">
             <el-tree :data="orgData" node-key="id" default-expand-all :expand-on-click-node="false">
                 <span class="custom-tree-node" slot-scope="{ node, data }">
                     <span v-if="node.data.isEdit==true">
